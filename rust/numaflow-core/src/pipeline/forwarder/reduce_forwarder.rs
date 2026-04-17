@@ -34,6 +34,7 @@ use async_nats::jetstream::Context;
 use std::path::PathBuf;
 use std::time::Duration;
 use tokio::fs;
+use tokio::task::JoinHandle;
 use tokio::time::{interval, timeout};
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info, warn};
@@ -68,8 +69,10 @@ impl<C: NumaflowTypeConfig> ReduceForwarder<C> {
             }
         };
 
+        let pbq_monitor = spawn_cancel_on_error(pbq_handle, cln_token.clone());
+
         // Join the pbq and reducer
-        let (pbq_result, processor_result) = tokio::try_join!(pbq_handle, processor_handle)
+        let (pbq_result, processor_result) = tokio::try_join!(pbq_monitor, processor_handle)
             .map_err(|e| {
                 error!(?e, "Error while joining PBQ reader and reducer");
                 crate::error::Error::Forwarder(format!(
@@ -542,6 +545,32 @@ pub(crate) async fn start_reduce_forwarder(
             .await
         }
     }
+}
+
+/// Wraps a `JoinHandle<Result<()>>` in a monitor task that triggers `cancel_token` when the
+/// inner task fails (either by returning `Err` or by panicking/being cancelled at the task
+/// layer). This is used so that an error from the PBQ reader signals the reducer to finish,
+/// instead of the reducer hanging forever waiting for messages that will never arrive.
+fn spawn_cancel_on_error(
+    join_handle: JoinHandle<Result<()>>,
+    cancel_token: CancellationToken,
+) -> JoinHandle<Result<()>> {
+    tokio::spawn(async move {
+        match join_handle.await {
+            Ok(inner) => {
+                if inner.is_err() {
+                    cancel_token.cancel();
+                }
+                inner
+            }
+            Err(join_err) => {
+                cancel_token.cancel();
+                Err(crate::error::Error::Forwarder(format!(
+                    "Spawn task failed to join: {join_err}"
+                )))
+            }
+        }
+    })
 }
 
 #[cfg(test)]
