@@ -1,6 +1,6 @@
 # Numaflow MCP Server
 
-The Numaflow MCP (Model Context Protocol) server exposes **read-only** tools so AI assistants (Cursor, Claude Code, etc.) can inspect Pipelines, MonoVertices, pods, logs, metrics, watermarks, and runtime errors without scraping logs manually.
+The Numaflow MCP (Model Context Protocol) server exposes **read-only** tools so MCP-compatible assistants and automation clients can inspect Pipelines, MonoVertices, pods, logs, metrics, watermarks, and runtime errors without scraping logs manually.
 
 The server never creates, updates, deletes, or patches Kubernetes resources.
 
@@ -51,7 +51,7 @@ Confirm the subcommand exists:
 
 ## Run locally (stdio)
 
-The default mode uses **stdio** transport — Cursor and most local MCP clients spawn the process and talk over stdin/stdout:
+The default mode uses **stdio** transport. Local MCP clients spawn the process and exchange MCP messages over stdin/stdout:
 
 ```shell
 export KUBECONFIG=~/.kube/config
@@ -71,9 +71,9 @@ export KUBECONFIG=~/.kube/config
 
 Environment variable equivalents: `KUBECONFIG`, `NAMESPACE`, `NUMAFLOW_DAEMON_CLIENT_PROTOCOL`, `NUMAFLOW_MCP_HTTP`, `NUMAFLOW_MCP_INSECURE`.
 
-## Cursor setup
+## MCP client setup
 
-Create or edit `.cursor/mcp.json` in your project (or global Cursor MCP settings):
+Configure your MCP client to launch the Numaflow binary with the `mcp-server` subcommand. Most stdio MCP clients use a JSON configuration shaped like this:
 
 ```json
 {
@@ -91,11 +91,11 @@ Create or edit `.cursor/mcp.json` in your project (or global Cursor MCP settings
 
 Replace paths with your actual binary and kubeconfig locations.
 
-**Restart MCP after changes:** Cursor Settings → MCP → restart the server, or reload the window. If you rebuild the binary, restart MCP so it picks up the new build.
+**Restart the MCP client after changes:** If you rebuild the binary or edit the MCP configuration, restart the MCP server/client session so it picks up the new build and settings.
 
-### Tips for Cursor
+### Tips for stdio clients
 
-- Use an **absolute path** for `command` — relative paths often fail when Cursor starts the server from a different cwd.
+- Use an **absolute path** for `command` — relative paths can fail when the client starts the server from a different working directory.
 - Set `--namespace` to the namespace you work in most often; you can still pass `namespace` per tool call.
 - Leave `--namespace` empty if you want list tools to search all namespaces.
 
@@ -167,6 +167,38 @@ For running MCP inside Kubernetes (not typical for local dev):
 
 Use `--insecure` only on trusted networks. TLS cert/key can be supplied with `--tls-cert` and `--tls-key`; otherwise a self-signed cert is generated.
 
+For a local HTTP smoke test, initialize a streamable-HTTP MCP session before calling tools:
+
+```shell
+./dist/numaflow mcp-server --http --insecure --port 8080 --namespace default &
+MCP_PID=$!
+TMP_HEADERS=$(mktemp)
+
+curl -sS -N -D "$TMP_HEADERS" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"curl-smoke-test","version":"0.1.0"}}}' \
+  http://127.0.0.1:8080/mcp
+
+SESSION_ID=$(awk 'tolower($1)=="mcp-session-id:" {print $2}' "$TMP_HEADERS" | tr -d '\r')
+
+curl -sS -N \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -H "Mcp-Session-Id: $SESSION_ID" \
+  -d '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+  http://127.0.0.1:8080/mcp
+
+curl -sS -N \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -H "Mcp-Session-Id: $SESSION_ID" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
+  http://127.0.0.1:8080/mcp | jq '.result.tools[].name'
+
+kill "$MCP_PID"
+```
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |
@@ -174,9 +206,10 @@ Use `--insecure` only on trusted networks. TLS cert/key can be supplied with `--
 | `failed to get kubernetes rest config` | Bad or missing kubeconfig | Set `KUBECONFIG` or `--kubeconfig` |
 | `pipelines.numaflow.io "X" not found` | Wrong name/namespace | Use `list_pipelines` to find exact names |
 | `name resolver error: produced zero addresses` | Old MCP binary or no restart | Rebuild, restart MCP server |
+| `Invalid session ID` in HTTP mode | Tool request sent before MCP session initialization | Send `initialize`, capture `Mcp-Session-Id`, then include it on subsequent requests |
 | `GetVertexMetrics failed` / daemon errors | Daemon pod not running | `kubectl get pods -l app.kubernetes.io/component=daemon` |
 | Empty metrics-server fields in pod info | metrics-server not installed | Install metrics-server (see [Development](development.md)) |
-| MCP tools not visible in Cursor | Config not loaded | Check `.cursor/mcp.json`, restart MCP |
+| MCP tools not visible in client | Config not loaded | Check the MCP client configuration and restart the MCP session |
 
 ### Manual daemon check (optional)
 
