@@ -311,11 +311,19 @@ export function VertexDetails({
           display: "flex",
           flexDirection: "column",
           height: "100%",
+          minHeight: 0,
+          flex: 1,
+          overflow: "hidden",
         }}
       >
-        {header}
+        <Box sx={{ flexShrink: 0 }}>{header}</Box>
         <Box
-          sx={{ marginTop: "1.6rem", borderBottom: 1, borderColor: "divider" }}
+          sx={{
+            marginTop: "1.6rem",
+            borderBottom: 1,
+            borderColor: "divider",
+            flexShrink: 0,
+          }}
         >
           <Tabs
             className="vertex-details-tabs"
@@ -393,26 +401,21 @@ export function VertexDetails({
             )}
           </Tabs>
         </Box>
-        <div
-          className="vertex-details-tab-panel"
-          role="tabpanel"
-          hidden={tabValue !== PODS_VIEW_TAB_INDEX}
-        >
-          {tabValue === PODS_VIEW_TAB_INDEX && (
+        {tabValue === PODS_VIEW_TAB_INDEX && (
+          <div
+            className="vertex-details-tab-panel vertex-details-tab-panel-pods"
+            role="tabpanel"
+          >
             <Pods
               namespaceId={namespaceId}
               pipelineId={pipelineId}
               vertexId={vertexId}
               type={type}
             />
-          )}
-        </div>
-        <div
-          className="vertex-details-tab-panel"
-          role="tabpanel"
-          hidden={tabValue !== SPEC_TAB_INDEX}
-        >
-          {tabValue === SPEC_TAB_INDEX && (
+          </div>
+        )}
+        {tabValue === SPEC_TAB_INDEX && (
+          <div className="vertex-details-tab-panel" role="tabpanel">
             <Box sx={{ height: "100%" }}>
               <VertexUpdate
                 namespaceId={namespaceId}
@@ -424,14 +427,10 @@ export function VertexDetails({
                 refresh={refresh}
               />
             </Box>
-          )}
-        </div>
-        <div
-          className="vertex-details-tab-panel"
-          role="tabpanel"
-          hidden={tabValue !== PROCESSING_RATES_TAB_INDEX}
-        >
-          {tabValue === PROCESSING_RATES_TAB_INDEX && (
+          </div>
+        )}
+        {tabValue === PROCESSING_RATES_TAB_INDEX && (
+          <div className="vertex-details-tab-panel" role="tabpanel">
             <ProcessingRates
               vertexId={vertexId}
               namespaceId={namespaceId}
@@ -439,14 +438,10 @@ export function VertexDetails({
               type={type}
               vertexMetrics={vertexMetrics}
             />
-          )}
-        </div>
-        <div
-          className="vertex-details-tab-panel"
-          role="tabpanel"
-          hidden={tabValue !== K8S_EVENTS_TAB_INDEX}
-        >
-          {tabValue === K8S_EVENTS_TAB_INDEX && (
+          </div>
+        )}
+        {tabValue === K8S_EVENTS_TAB_INDEX && (
+          <div className="vertex-details-tab-panel" role="tabpanel">
             <K8sEvents
               namespaceId={namespaceId}
               pipelineId={
@@ -458,32 +453,22 @@ export function VertexDetails({
               excludeHeader
               square
             />
-          )}
-        </div>
-        <div
-          className="vertex-details-tab-panel"
-          role="tabpanel"
-          hidden={tabValue !== ERRORS_TAB_INDEX}
-        >
-          {tabValue === ERRORS_TAB_INDEX && (
+          </div>
+        )}
+        {tabValue === ERRORS_TAB_INDEX && (
+          <div className="vertex-details-tab-panel" role="tabpanel">
             <Errors details={constructedDetails} square />
-          )}
-        </div>
-        {showBuffersTab && (
-          <div
-            className="vertex-details-tab-panel"
-            role="tabpanel"
-            hidden={tabValue !== BUFFERS_TAB_INDEX}
-          >
-            {tabValue === BUFFERS_TAB_INDEX && (
-              <Buffers
-                buffers={buffers || []}
-                namespaceId={namespaceId}
-                pipelineId={pipelineId}
-                vertexId={vertexId}
-                type={type}
-              />
-            )}
+          </div>
+        )}
+        {showBuffersTab && tabValue === BUFFERS_TAB_INDEX && (
+          <div className="vertex-details-tab-panel" role="tabpanel">
+            <Buffers
+              buffers={buffers || []}
+              namespaceId={namespaceId}
+              pipelineId={pipelineId}
+              vertexId={vertexId}
+              type={type}
+            />
           </div>
         )}
         {updateModalOnClose && updateModalOpen && (

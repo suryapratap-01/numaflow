@@ -1,32 +1,33 @@
 import Box from "@mui/material/Box";
-import Stack from "@mui/material/Stack";
-import Chip from "@mui/material/Chip";
 import { ContainerProps } from "../../../../../../../../../../../types/declarations/pods";
+
+import "./style.css";
 
 export function Containers(props: ContainerProps) {
   const { pod, containerName: container, handleContainerClick } = props;
   if (!pod) return null;
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}
-      >
+    <Box className="containers-segmented" sx={{ width: "100%" }}>
+      <Box className="containers-segmented-track">
         {pod?.containers?.map((c: string) => {
+          const active = container === c;
           return (
-            <Chip
+            <button
+              type="button"
               data-testid={`${pod?.name}-${c}`}
               key={c}
-              label={c}
-              variant={container === c ? undefined : "outlined"}
+              className={`containers-segmented-btn${
+                active ? " containers-segmented-btn-active" : ""
+              }`}
               onClick={() => handleContainerClick(c)}
-              sx={{ fontSize: "1.3rem" }}
-            />
+              title={c}
+            >
+              {c}
+            </button>
           );
         })}
-      </Stack>
+      </Box>
     </Box>
   );
 }

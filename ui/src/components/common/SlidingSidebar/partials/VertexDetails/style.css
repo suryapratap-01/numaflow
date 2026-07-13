@@ -10,7 +10,24 @@
 }
 
 .vertex-details-tab-panel {
-  height: 100%;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Pods View must fill leftover height under header/tabs */
+.vertex-details-tab-panel-pods {
+  overflow: hidden;
+  position: relative;
+}
+
+.vertex-details-tab-panel-pods .pods-view-root {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
 }
 
 .vertex-details-tab.MuiTab-root {
@@ -30,7 +47,7 @@
 }
 
 .vertex-details-tabs > .MuiTabs-scroller > .MuiTabs-indicator {
-  background-color: #037C8F !important;
+  background-color: #037c8f !important;
 }
 
 .vertex-details-errors-tab-title {

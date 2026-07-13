@@ -1,3 +1,206 @@
+.pod-overview-root {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  width: 100%;
+}
+
+.pod-overview-card {
+  background: #fff;
+  border-radius: 1.2rem;
+  padding: 2rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.pod-overview-card-term {
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.pod-overview-section-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+  gap: 0.8rem;
+}
+
+.pod-overview-section-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.pod-overview-section-dot {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 0.2rem;
+  background: #3b82f6;
+  flex-shrink: 0;
+}
+
+.pod-overview-status-badge {
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.pod-overview-status-badge-ok {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.pod-overview-status-badge-bad {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.pod-overview-pod-name {
+  margin: 0 0 1.2rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.2rem;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pod-overview-dl {
+  margin: 0;
+}
+
+.pod-overview-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.6rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  font-size: 1.4rem;
+}
+
+.pod-overview-row dt {
+  color: #64748b;
+  margin: 0;
+}
+
+.pod-overview-row dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 500;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.pod-overview-warn {
+  color: #dc2626;
+}
+
+.pod-overview-resource {
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+}
+
+.pod-overview-resource .pod-overview-row {
+  border-bottom: none;
+  padding: 0 0 0.8rem;
+}
+
+.pod-overview-bar-track {
+  height: 0.4rem;
+  width: 100%;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.pod-overview-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.pod-overview-bar-cpu {
+  background: #0ea5e9;
+}
+
+.pod-overview-bar-mem {
+  background: #8b5cf6;
+}
+
+.pod-overview-bar-mem-hot {
+  background: #ef4444;
+}
+
+.pod-overview-resource-meta {
+  margin-top: 0.4rem;
+  font-size: 1.1rem;
+  color: #94a3b8;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.pod-overview-term-reason {
+  margin: 0 0 0.8rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.pod-overview-term-msg {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.pod-overview-view-all {
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0284c7;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pod-overview-view-all:hover {
+  color: #0369a1;
+}
+
+.pod-overview-quick {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.pod-overview-quick-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.2rem;
+  font-size: 1.4rem;
+  color: #475569;
+}
+
+.pod-overview-quick-val {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 600;
+  color: #0f172a;
+  text-align: right;
+  word-break: break-word;
+}
+
+.pod-overview-quick-empty {
+  font-size: 1.2rem;
+  color: #94a3b8;
+}
+
+/* legacy class names kept for any external references */
 .category-title {
   font-weight: 600;
   font-size: 2rem;

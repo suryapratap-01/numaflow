@@ -24,7 +24,7 @@ export interface PodContainerSpec {
 export interface ContainerProps {
   pod: Pod;
   containerName: string;
-  handleContainerClick: any;
+  handleContainerClick: (containerName: string) => void;
 }
 
 export interface PodDetail {
@@ -37,6 +37,16 @@ export interface SearchablePodsHeatMapProps {
   podsDetailsMap: Map<string, PodDetail>;
   onPodClick: (e: Element | EventType, pod: Pod) => void;
   selectedPod: Pod | undefined;
+}
+
+export type PodSeverity = "critical" | "warning" | "healthy" | "unknown";
+
+export interface PodsFleetHealthProps {
+  pods: Pod[];
+  podsDetailsMap: Map<string, PodDetail>;
+  selectedPod: Pod | undefined;
+  onPodSelect: (pod: Pod) => void;
+  podStatusByName?: Map<string, string>;
 }
 
 export interface PodsHeatMapProps {
@@ -53,6 +63,7 @@ export interface PodHealth {
   maxCPUPerc: number;
   maxMemPerc: number;
   container: ContainerHealth[];
+  severity?: PodSeverity;
 }
 
 export interface ContainerHealth {
@@ -134,6 +145,7 @@ export interface PodInfoProps {
   containerName: string;
   containerInfo: ContainerInfoProps;
   podSpecificInfo: PodSpecificInfoProps;
+  onViewMetrics?: () => void;
 }
 
 export interface PodLogsProps {

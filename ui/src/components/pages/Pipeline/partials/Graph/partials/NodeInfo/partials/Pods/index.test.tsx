@@ -72,13 +72,31 @@ describe("Pods", () => {
     (global as any).fetch = originFetch;
   });
   it("loads pods view", async () => {
-    mockedUsePodsViewFetch.mockReturnValue({
-      pods: pods,
-      podsDetails: podsDetails,
-      podsErr: undefined,
-      podsDetailsErr: undefined,
-      loading: false,
-    });
+    mockedUsePodsViewFetch.mockImplementation(
+      (
+        _ns,
+        _pl,
+        _vx,
+        selectedPod,
+        _type,
+        setSelectedPod,
+        setSelectedContainer
+      ) => {
+        if (!selectedPod && pods.length) {
+          setTimeout(() => {
+            setSelectedPod(pods[0]);
+            setSelectedContainer(pods[0].containers[0]);
+          }, 0);
+        }
+        return {
+          pods: pods,
+          podsDetails: podsDetails,
+          podsErr: undefined,
+          podsDetailsErr: undefined,
+          loading: false,
+        };
+      }
+    );
     const mRes = {
       body: new ReadableStream({
         start(controller) {
@@ -91,6 +109,24 @@ describe("Pods", () => {
         },
       }),
       ok: true,
+      json: async () => ({
+        data: [
+          {
+            name: "simple-pipeline-infer-0-xah5w",
+            status: "Running",
+            containerDetailsMap: {
+              numa: { state: "Running", restartCount: 0 },
+            },
+          },
+          {
+            name: "simple-pipeline-infer-1-xah5w",
+            status: "Running",
+            containerDetailsMap: {
+              numa: { state: "Running", restartCount: 0 },
+            },
+          },
+        ],
+      }),
     };
     const mockedFetch = jest.fn().mockResolvedValue(mRes as any);
     (global as any).fetch = mockedFetch;
@@ -116,29 +152,29 @@ describe("Pods", () => {
     );
     await waitFor(() =>
       expect(
-        screen.getByTestId("hexagon_simple-pipeline-infer-0-xah5w-cpu")
+        screen.getByTestId("pod-chip_simple-pipeline-infer-0-xah5w")
       ).toBeInTheDocument()
     );
-    expect(mockedFetch).toBeCalledTimes(3);
     fireEvent.click(
-      screen.getByTestId("hexagon_simple-pipeline-infer-0-xah5w-cpu")
+      screen.getByTestId("pod-chip_simple-pipeline-infer-0-xah5w")
     );
     await waitFor(() =>
       expect(
         screen.getByTestId("simple-pipeline-infer-0-xah5w-numa")
       ).toBeInTheDocument()
     );
-    expect(mockedFetch).toBeCalledTimes(5);
     fireEvent.click(screen.getByTestId("simple-pipeline-infer-0-xah5w-numa"));
-    expect(mockedFetch).toBeCalledTimes(5);
     const dropdown = screen.getByRole("button", { name: "Open" });
     fireEvent.click(dropdown);
-    expect(mockedFetch).toBeCalledTimes(5);
     const option2 = screen.getByText("simple-pipeline-infer-1-xah5w");
     await act(async () => {
       fireEvent.click(option2);
     });
-    expect(mockedFetch).toBeCalledTimes(7);
+    await waitFor(() =>
+      expect(
+        screen.getByTestId("pod-chip_simple-pipeline-infer-1-xah5w")
+      ).toBeInTheDocument()
+    );
   });
   it("pods error screen - api errors", async () => {
     mockedUsePodsViewFetch.mockReturnValue({

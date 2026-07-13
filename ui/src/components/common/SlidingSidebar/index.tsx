@@ -282,6 +282,8 @@ export function SlidingSidebar({
         width: width,
         minWidth: minWidth,
         height: "100%",
+        flex: 1,
+        minHeight: 0,
         fontSize: "1.6rem",
       }}
     >
@@ -313,11 +315,13 @@ export function SlidingSidebar({
           paddingBottom: "2.4rem",
           paddingLeft: "1.6rem",
           width: "100%",
-          height: "calc(100% - 10.8rem)",
+          height: "100%",
           overflowX: "hidden",
-          overflowY: "auto",
+          overflowY: "hidden",
           minWidth: 0,
+          minHeight: 0,
           boxSizing: "border-box",
+          flex: 1,
         }}
       >
         <Box
@@ -326,13 +330,27 @@ export function SlidingSidebar({
             flexDirection: "row",
             justifyContent: "flex-end",
             marginBottom: "-3.2rem",
+            flexShrink: 0,
+            position: "relative",
+            zIndex: 1,
           }}
         >
           <IconButton data-testid="close-button" onClick={handleClose}>
             <CloseIcon sx={{ height: "2.4rem", width: "2.4rem" }} />
           </IconButton>
         </Box>
-        {content}
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "auto",
+          }}
+        >
+          {content}
+        </Box>
       </Box>
       {modalOnClose && modalOnCloseOpen && (
         <CloseModal

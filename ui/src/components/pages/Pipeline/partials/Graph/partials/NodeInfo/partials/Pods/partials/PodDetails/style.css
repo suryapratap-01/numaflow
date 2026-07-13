@@ -1,23 +1,81 @@
+.pod-detail-tab-panel {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.pod-detail-tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+  padding: 0 1.2rem;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.pod-detail-tabs-hint {
+  display: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+@media (min-width: 600px) {
+  .pod-detail-tabs-hint {
+    display: block;
+  }
+}
+
+.pod-detail-logs-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 1.2rem 1.6rem 0.8rem;
+  background: #fff;
+}
+
+.pod-detail-logs-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pod-detail-logs-badge {
+  border-radius: 999px;
+  background: #f0f9ff;
+  padding: 0.4rem 1rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #0369a1;
+}
+
+/* Keep legacy class names used elsewhere (pre-existing) */
 .vertex-details-tab-panel {
-    height: 100%;
+  height: 100%;
 }
 
 .vertex-details-tab.MuiTab-root {
-    font-size: 1.4rem !important;
-    font-style: normal !important;
-    font-weight: 600 !important;
-    color: var(--text-tertiary) !important;
-    text-transform: none !important;
+  font-size: 1.4rem !important;
+  font-style: normal !important;
+  font-weight: 600 !important;
+  color: var(--text-tertiary) !important;
+  text-transform: none !important;
 }
 
 .vertex-details-tab-selected.MuiTab-root {
-    font-size: 1.4rem !important;
-    font-style: normal !important;
-    font-weight: 600 !important;
-    color: var(--text-primary) !important;
-    text-transform: none !important;
+  font-size: 1.4rem !important;
+  font-style: normal !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  text-transform: none !important;
 }
 
 .vertex-details-tabs > .MuiTabs-scroller > .MuiTabs-indicator {
-    background-color: #037C8F !important;
+  background-color: #037c8f !important;
 }

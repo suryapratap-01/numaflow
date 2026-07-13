@@ -1,0 +1,193 @@
+.pods-fleet-health {
+  background: #fff;
+  border-radius: 1.2rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 1.4rem 1.6rem;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.pods-fleet-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+.pods-fleet-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.pods-fleet-title {
+  margin-right: 0.8rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.pods-fleet-pill {
+  height: 2.8rem;
+  padding: 0 1.2rem;
+  border: none;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pods-fleet-pill:hover {
+  background: #e2e8f0;
+}
+
+.pods-fleet-pill-active {
+  background: #0f172a;
+  color: #fff;
+}
+
+.pods-fleet-pill-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.pods-fleet-search {
+  min-width: 22rem;
+  max-width: 32rem;
+  flex: 1;
+}
+
+.pods-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.pod-chip {
+  position: relative;
+  width: 3.8rem;
+  height: 3.8rem;
+  border: none;
+  border-radius: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  padding: 0;
+}
+
+.pod-chip:hover {
+  transform: scale(1.03);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.pod-chip-active {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0ea5e9;
+  transform: scale(1.04);
+  z-index: 1;
+}
+
+.pod-chip-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.pod-chip-restart-dot {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.3rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  background: #ef4444;
+  border: 1px solid #fff;
+}
+
+.pods-fleet-selected {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.6rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.05);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.1rem;
+}
+
+.pods-fleet-selected-label {
+  color: #94a3b8;
+}
+
+.pods-fleet-selected-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #334155;
+}
+
+.pods-fleet-selected-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.pods-fleet-selected-status-ok {
+  color: #059669;
+}
+
+.pods-fleet-selected-status-bad {
+  color: #ef4444;
+}
+
+.pods-fleet-status-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+}
+
+.pods-fleet-status-dot-ok {
+  background: #34d399;
+}
+
+.pods-fleet-status-dot-bad {
+  background: #ef4444;
+}
+
+.pod-chip-tooltip-span {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.pod-chip-tooltip-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.pod-chip-tooltip-th,
+.pod-chip-tooltip-td {
+  text-align: left;
+  padding: 0.2rem 0.6rem;
+  font-size: 1.1rem;
+}

@@ -160,7 +160,7 @@ export function Metrics({
   }
 
   return (
-    <Box sx={{ height: "100%" }}>
+    <Box className="metrics-panel-card" sx={{ height: "100%" }}>
       {discoveredMetrics?.data?.map((metric: any) => {
         if (!shouldShowMetric(metric)) return null;
 
@@ -185,12 +185,16 @@ export function Metrics({
         const panelId = `${metric?.metric_name}-panel`;
         return (
           <Accordion
+            className="metrics-accordion"
+            disableGutters
+            elevation={0}
             expanded={expanded.has(panelId)}
             onChange={handleAccordionChange(panelId)}
             key={panelId}
           >
             <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
+              className="metrics-accordion-summary-root"
+              expandIcon={<ExpandMoreIcon sx={{ color: "#64748b" }} />}
               aria-controls={`${metric?.metric_name}-content`}
               id={`${metric?.metric_name}-header`}
             >
@@ -208,12 +212,18 @@ export function Metrics({
                   placement={"top-start"}
                 >
                   <Box>
-                    <InfoOutlinedIcon sx={{ cursor: "pointer" }} />
+                    <InfoOutlinedIcon
+                      sx={{
+                        cursor: "pointer",
+                        fontSize: "1.4rem",
+                        color: "#94a3b8",
+                      }}
+                    />
                   </Box>
                 </Tooltip>
               </Box>
             </AccordionSummary>
-            <AccordionDetails>
+            <AccordionDetails className="metrics-accordion-details">
               {expanded?.has(panelId) && (
                 <LineChartComponent
                   namespaceId={namespaceId}
