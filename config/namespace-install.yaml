@@ -7942,6 +7942,8 @@ spec:
                         type: array
                       queueName:
                         type: string
+                      queueNames:
+                        type: string
                       queueOwnerAWSAccountID:
                         type: string
                       visibilityTimeout:
@@ -7952,7 +7954,6 @@ spec:
                         type: integer
                     required:
                     - awsRegion
-                    - queueName
                     - queueOwnerAWSAccountID
                     type: object
                   transformer:
@@ -21164,6 +21165,8 @@ spec:
                               type: array
                             queueName:
                               type: string
+                            queueNames:
+                              type: string
                             queueOwnerAWSAccountID:
                               type: string
                             visibilityTimeout:
@@ -21174,7 +21177,6 @@ spec:
                               type: integer
                           required:
                           - awsRegion
-                          - queueName
                           - queueOwnerAWSAccountID
                           type: object
                         transformer:
@@ -34380,6 +34382,8 @@ spec:
                                   type: array
                                 queueName:
                                   type: string
+                                queueNames:
+                                  type: string
                                 queueOwnerAWSAccountID:
                                   type: string
                                 visibilityTimeout:
@@ -34390,7 +34394,6 @@ spec:
                                   type: integer
                               required:
                               - awsRegion
-                              - queueName
                               - queueOwnerAWSAccountID
                               type: object
                             transformer:
@@ -43800,6 +43803,8 @@ spec:
                         type: array
                       queueName:
                         type: string
+                      queueNames:
+                        type: string
                       queueOwnerAWSAccountID:
                         type: string
                       visibilityTimeout:
@@ -43810,7 +43815,6 @@ spec:
                         type: integer
                     required:
                     - awsRegion
-                    - queueName
                     - queueOwnerAWSAccountID
                     type: object
                   transformer:
