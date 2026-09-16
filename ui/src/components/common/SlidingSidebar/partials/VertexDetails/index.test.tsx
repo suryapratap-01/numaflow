@@ -492,7 +492,9 @@ describe("VertexDetails", () => {
       <AppContext.Provider
         value={{ addError: jest.fn(), disableMetricsCharts: false } as any}
       >
-        <MemoryRouter initialEntries={["/?vertex=test-vertex&vertexTab=spec&specLine=12"]}>
+        <MemoryRouter
+          initialEntries={["/?vertex=test-vertex&vertexTab=spec&specLine=12"]}
+        >
           <SearchProbe />
           <VertexDetails
             namespaceId="test-namespace"
@@ -563,7 +565,9 @@ describe("VertexDetails", () => {
       <AppContext.Provider
         value={{ addError: jest.fn(), disableMetricsCharts: false } as any}
       >
-        <MemoryRouter initialEntries={["/?vertex=test-vertex&vertexTab=buffers"]}>
+        <MemoryRouter
+          initialEntries={["/?vertex=test-vertex&vertexTab=buffers"]}
+        >
           <SearchProbe />
           <VertexDetails
             namespaceId="test-namespace"
@@ -644,5 +648,129 @@ describe("VertexDetails", () => {
     await waitFor(() => {
       expect(screen.getByTestId("copy-view-link")).toBeInTheDocument();
     });
+  });
+
+  it("switches to the v2-only shell and preserves deep-link state on fallback", async () => {
+    localStorage.setItem("numaflow.podView.experience", "next");
+    fetchMock.mockResponse((request) => {
+      if (request.url.endsWith("/api/v2/capabilities")) {
+        return Promise.resolve(
+          JSON.stringify({
+            apiVersion: "v2",
+            podView: {
+              mode: "optIn",
+              eligible: true,
+              defaultExperience: "classic",
+              allowClassicFallback: true,
+            },
+            operations: [],
+            limits: {
+              defaultPageSize: 50,
+              maximumPageSize: 200,
+              maximumLogLines: 1000,
+              maximumMetricPoints: 2000,
+            },
+          })
+        );
+      }
+      if (request.url.endsWith("/summary")) {
+        return Promise.resolve(
+          JSON.stringify({
+            ref: {
+              kind: "PipelineVertex",
+              namespace: "test-namespace",
+              pipeline: "test-pipeline",
+              name: "test-vertex",
+              uid: "uid",
+            },
+            vertexType: "Sink",
+            phase: "Running",
+            desiredPhase: "Running",
+            health: { state: "healthy" },
+            generation: 1,
+            observedGeneration: 1,
+            createdAt: "2026-09-16T10:00:00Z",
+            observedAt: "2026-09-16T11:00:00Z",
+            capabilities: ["summary", "status"],
+          })
+        );
+      }
+      if (request.url.endsWith("/status")) {
+        return Promise.resolve(
+          JSON.stringify({
+            ref: {
+              kind: "PipelineVertex",
+              namespace: "test-namespace",
+              pipeline: "test-pipeline",
+              name: "test-vertex",
+              uid: "uid",
+            },
+            phase: "Running",
+            desiredPhase: "Running",
+            replicas: {
+              current: 1,
+              desired: 1,
+              ready: 1,
+              updated: 1,
+              updatedReady: 1,
+            },
+            conditions: [],
+            generation: 1,
+            observedGeneration: 1,
+            observedAt: "2026-09-16T11:00:00Z",
+          })
+        );
+      }
+      return Promise.resolve({ status: 404, body: "{}" });
+    });
+
+    render(
+      <AppContext.Provider
+        value={
+          { host: "", addError: jest.fn(), disableMetricsCharts: false } as any
+        }
+      >
+        <MemoryRouter
+          initialEntries={[
+            "/?namespace=test-namespace&pipeline=test-pipeline&vertex=test-vertex&podView=next&pod=test-pod&container=udsink",
+          ]}
+        >
+          <SearchProbe />
+          <VertexDetails
+            namespaceId="test-namespace"
+            pipelineId="test-pipeline"
+            vertexId="test-vertex"
+            vertexSpecs={{}}
+            vertexMetrics={{}}
+            buffers={[]}
+            type="sink"
+            setModalOnClose={jest.fn()}
+            refresh={jest.fn()}
+          />
+        </MemoryRouter>
+      </AppContext.Provider>
+    );
+
+    expect(await screen.findByTestId("pod-view-next")).toBeInTheDocument();
+    expect(screen.queryByText("Mocked pods")).not.toBeInTheDocument();
+    expect(
+      fetchMock.mock.calls.every(([request]) =>
+        String(request).includes("/api/v2/")
+      )
+    ).toBe(true);
+
+    fireEvent.click(screen.getByTestId("use-classic-pod-view"));
+    expect(await screen.findByText("Mocked pods")).toBeInTheDocument();
+    expect(screen.getByTestId("location-search")).toHaveTextContent(
+      "podView=classic"
+    );
+    expect(screen.getByTestId("location-search")).toHaveTextContent(
+      "pod=test-pod"
+    );
+    expect(screen.getByTestId("location-search")).toHaveTextContent(
+      "container=udsink"
+    );
+    localStorage.removeItem("numaflow.podView.experience");
+    fetchMock.resetMocks();
   });
 });

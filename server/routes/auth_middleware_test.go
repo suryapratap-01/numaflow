@@ -26,6 +26,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/numaproj/numaflow/server/authn"
 	"github.com/numaproj/numaflow/server/authz"
@@ -47,6 +48,7 @@ func (m *mockAuthorizer) Authorize(c *gin.Context, userInfo *authn.UserInfo) boo
 // mockAuthenticator is a mock implementation of the Authenticator interface
 type mockAuthenticator struct {
 	authenticateFunc func(c *gin.Context) (*authn.UserInfo, error)
+	tokenFunc        func(ctx context.Context, token string) (*authn.UserInfo, error)
 }
 
 func (m *mockAuthenticator) Authenticate(c *gin.Context) (*authn.UserInfo, error) {
@@ -54,6 +56,13 @@ func (m *mockAuthenticator) Authenticate(c *gin.Context) (*authn.UserInfo, error
 		return m.authenticateFunc(c)
 	}
 	return nil, errors.New("authentication failed")
+}
+
+func (m *mockAuthenticator) AuthenticateToken(ctx context.Context, token string) (*authn.UserInfo, error) {
+	if m.tokenFunc != nil {
+		return m.tokenFunc(ctx, token)
+	}
+	return nil, errors.New("token authentication failed")
 }
 
 // Helper function to create a test user info
@@ -66,6 +75,56 @@ func createTestUserInfo(email string, groups []string) *authn.UserInfo {
 		IDToken:      "test-token",
 		RefreshToken: "test-refresh-token",
 	}
+}
+
+func TestAuthMiddleware_BearerAuthentication(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	testUser := createTestUserInfo("agent@example.com", []string{"readonly"})
+	authorizer := &mockAuthorizer{authorizeFunc: func(_ *gin.Context, userInfo *authn.UserInfo) bool {
+		return userInfo == testUser
+	}}
+	dexAuth := &mockAuthenticator{}
+	localAuth := &mockAuthenticator{tokenFunc: func(_ context.Context, token string) (*authn.UserInfo, error) {
+		if token != "valid-token" {
+			return nil, errors.New("invalid token")
+		}
+		return testUser, nil
+	}}
+	routeMap := authz.RouteMap{"GET:/test": authz.NewRouteInfo(authz.ObjectPipeline, true)}
+	router := gin.New()
+	router.Use(authMiddleware(context.Background(), authorizer, dexAuth, localAuth, routeMap))
+	router.GET("/test", func(c *gin.Context) {
+		_, exists := c.Get(authn.UserInfoContextKey)
+		assert.True(t, exists)
+		c.Status(http.StatusNoContent)
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/test", nil)
+	request.Header.Set("Authorization", "Bearer valid-token")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	assert.Equal(t, http.StatusNoContent, recorder.Code)
+}
+
+func TestV2AuthMiddlewareReturnsProblemForInvalidBearer(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	routeMap := authz.RouteMap{"GET:/api/v2/test": authz.NewRouteInfo(authz.ObjectPipeline, true)}
+	router := gin.New()
+	router.Use(v2AuthMiddleware(context.Background(), &mockAuthorizer{}, &mockAuthenticator{}, &mockAuthenticator{}, routeMap))
+	router.GET("/api/v2/test", func(c *gin.Context) {
+		c.Status(http.StatusNoContent)
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/v2/test", nil)
+	request.Header.Set("Authorization", "Bearer invalid-token")
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+
+	assert.Equal(t, http.StatusUnauthorized, recorder.Code)
+	assert.Equal(t, "application/problem+json", recorder.Header().Get("Content-Type"))
+	var problem map[string]any
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &problem))
+	assert.Equal(t, "authentication_failed", problem["code"])
 }
 
 func TestAuthMiddleware_MissingLoginCookie(t *testing.T) {
@@ -92,7 +151,7 @@ func TestAuthMiddleware_MissingLoginCookie(t *testing.T) {
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Contains(t, response["errMsg"], "Failed to get login type")
+	assert.Contains(t, response["errMsg"], "failed to get login type")
 }
 
 func TestAuthMiddleware_InvalidLoginType(t *testing.T) {
@@ -236,7 +295,7 @@ func TestAuthMiddleware_DexAuthenticationFailure(t *testing.T) {
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Contains(t, response["errMsg"], "Failed to authenticate user")
+	assert.Contains(t, response["errMsg"], "failed to authenticate user")
 }
 
 func TestAuthMiddleware_LocalAuthenticationFailure(t *testing.T) {
@@ -271,7 +330,7 @@ func TestAuthMiddleware_LocalAuthenticationFailure(t *testing.T) {
 	var response map[string]interface{}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Contains(t, response["errMsg"], "Failed to authenticate user")
+	assert.Contains(t, response["errMsg"], "failed to authenticate user")
 }
 
 func TestAuthMiddleware_AuthorizationRequired_Authorized(t *testing.T) {

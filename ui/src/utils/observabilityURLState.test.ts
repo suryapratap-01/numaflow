@@ -20,6 +20,19 @@ describe("observability URL state", () => {
     );
   });
 
+  it("switches Pod View without clearing deep-linked observability state", () => {
+    const search = updateObservabilitySearch(
+      "?namespace=default&pipeline=demo&vertex=input&vertexTab=metrics&pod=demo-0&container=udf&metricDuration=5m",
+      { podView: "next" }
+    );
+    const params = new URLSearchParams(search);
+    expect(params.get("podView")).toBe("next");
+    expect(params.get("vertexTab")).toBe("metrics");
+    expect(params.get("pod")).toBe("demo-0");
+    expect(params.get("container")).toBe("udf");
+    expect(params.get("metricDuration")).toBe("5m");
+  });
+
   it("removes empty values and clears only observability state", () => {
     const search = clearObservabilitySearch(
       "?namespace=default&pipeline=demo&vertex=input&pod=demo-input-0&logsSearch=error"
@@ -29,9 +42,9 @@ describe("observability URL state", () => {
   });
 
   it("parses booleans with a caller supplied default", () => {
-    expect(parseBooleanParam(new URLSearchParams("logsFocus=1"), "logsFocus")).toBe(
-      true
-    );
+    expect(
+      parseBooleanParam(new URLSearchParams("logsFocus=1"), "logsFocus")
+    ).toBe(true);
     expect(parseBooleanParam(new URLSearchParams(), "logsWrap", true)).toBe(
       true
     );

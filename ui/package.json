@@ -31,6 +31,7 @@
     "@mui/material": "^5.6.3",
     "@mui/x-date-pickers": "^7.23.2",
     "@stardazed/streams-polyfill": "^2.4.0",
+    "@tanstack/react-query": "4.41.0",
     "@tanstack/react-virtual": "^3.14.9",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^14.0.0",
@@ -87,6 +88,7 @@
     "build:all": "yarn build:tsc && yarn build:cjs",
     "build:tsc": "tsc",
     "build:cjs": "tsc --module commonjs --outDir dist/cjs/src",
+    "generate:api-v2": "openapi-typescript ../api/openapi-spec/numaflow-v2.yaml --output src/api/v2/generated.ts",
     "test": "react-scripts test  --ci --coverage --no-cache --reporters=default --reporters=jest-junit --watchAll=false --testPathIgnorePatterns='<rootDir>/src/components/common/SpecEditor/index\\.test\\.tsx$'",
     "eject": "react-scripts eject",
     "lint": "eslint . --ext .tsx"
@@ -112,6 +114,7 @@
     "eslint-plugin-prettier": "3.3.1",
     "jest-fetch-mock": "^3.0.3",
     "jest-junit": "^12.0.0",
+    "openapi-typescript": "6.7.6",
     "prettier": "2.5.1",
     "react-scripts": "5.0.1"
   },

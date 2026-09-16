@@ -1,0 +1,5 @@
+package: v2
+generate:
+  client: true
+  models: true
+output: pkg/apiclient/v2/client.gen.go

@@ -16,11 +16,19 @@ limitations under the License.
 
 package authn
 
-import "github.com/gin-gonic/gin"
+import (
+	"context"
+
+	"github.com/gin-gonic/gin"
+)
 
 type Authenticator interface {
 	// Authenticate is used to validate the user's identity.
 	// If the user is authenticated, the function returns user information.
 	// Otherwise, empty information with the corresponding error.
 	Authenticate(c *gin.Context) (*UserInfo, error)
+}
+
+type TokenAuthenticator interface {
+	AuthenticateToken(ctx context.Context, token string) (*UserInfo, error)
 }

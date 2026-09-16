@@ -111,16 +111,24 @@ func (d *DexObject) Authenticate(c *gin.Context) (*authn.UserInfo, error) {
 	if err = json.Unmarshal([]byte(userIdentityTokenStr), &userInfo); err != nil {
 		return nil, fmt.Errorf("user is not authenticated, err: %s", err.Error())
 	}
-	idToken, err := d.verify(c.Request.Context(), userInfo.IDToken)
+	authenticated, err := d.AuthenticateToken(c.Request.Context(), userInfo.IDToken)
+	if err != nil {
+		return nil, err
+	}
+	authenticated.RefreshToken = userInfo.RefreshToken
+	return authenticated, nil
+}
+
+func (d *DexObject) AuthenticateToken(ctx context.Context, token string) (*authn.UserInfo, error) {
+	idToken, err := d.verify(ctx, token)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify ID token: %w", err)
 	}
-
 	var claims authn.IDTokenClaims
 	if err = idToken.Claims(&claims); err != nil {
 		return nil, fmt.Errorf("error decoding ID token claims: %w", err)
 	}
-	userInfo = authn.NewUserInfo(&claims, userInfo.IDToken, userInfo.RefreshToken)
+	userInfo := authn.NewUserInfo(&claims, token, "")
 	return &userInfo, nil
 }
 

@@ -72,7 +72,11 @@ func (l *LocalUsersAuthObject) Authenticate(c *gin.Context) (*authn.UserInfo, er
 		return nil, fmt.Errorf("failed to retrieve user identity token: empty token")
 	}
 
-	claims, err := l.ParseToken(c, tokenString)
+	return l.AuthenticateToken(c.Request.Context(), tokenString)
+}
+
+func (l *LocalUsersAuthObject) AuthenticateToken(ctx context.Context, tokenString string) (*authn.UserInfo, error) {
+	claims, err := l.parseToken(ctx, tokenString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse user identity token: %v", err)
 	}
@@ -155,7 +159,11 @@ func (l *LocalUsersAuthObject) GenerateToken(c *gin.Context, username string) (s
 
 // ParseToken parses a jwt token and returns the claims
 func (l *LocalUsersAuthObject) ParseToken(c *gin.Context, tokenString string) (jwt.MapClaims, error) {
-	secretKey, err := l.getSecretKey(c.Request.Context())
+	return l.parseToken(c.Request.Context(), tokenString)
+}
+
+func (l *LocalUsersAuthObject) parseToken(ctx context.Context, tokenString string) (jwt.MapClaims, error) {
+	secretKey, err := l.getSecretKey(ctx)
 	if err != nil {
 		return nil, err
 	}

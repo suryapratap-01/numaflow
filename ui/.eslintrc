@@ -12,5 +12,26 @@
   "rules": {
     "no-debugger": 0,
     "@typescript-eslint/no-explicit-any": ["off"]
-  }
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/api/v2/**/*.{ts,tsx}",
+        "src/components/observability/PodViewNext/**/*.{ts,tsx}"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              "**/fetchWrappers/*",
+              "**/fetcherHooks/podsViewFetch",
+              "**/NodeInfo/partials/Pods",
+              "**/types/declarations/pods"
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }

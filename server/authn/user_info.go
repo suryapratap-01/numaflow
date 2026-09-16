@@ -16,6 +16,8 @@ limitations under the License.
 
 package authn
 
+const UserInfoContextKey = "numaflow.authn.userInfo"
+
 // IDTokenClaims is the claims extract from the IDToken.
 type IDTokenClaims struct {
 	Iss               string   `json:"iss"`

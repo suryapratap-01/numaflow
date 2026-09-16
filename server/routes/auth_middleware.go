@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/numaproj/numaflow/pkg/shared/logging"
@@ -33,38 +34,24 @@ import (
 // it ensures the user is authenticated and authorized
 // to execute the requested action before sending the request to the api handler.
 func authMiddleware(ctx context.Context, authorizer authz.Authorizer, dexAuthenticator authn.Authenticator, localUsersAuthenticator authn.Authenticator, authRouteMap authz.RouteMap) gin.HandlerFunc {
+	return authenticatedRouteMiddleware(ctx, authorizer, dexAuthenticator, localUsersAuthenticator, authRouteMap,
+		func(c *gin.Context, status int, _ string, detail string) {
+			c.JSON(status, v1.NewNumaflowAPIResponse(&detail, nil))
+		})
+}
 
+type authErrorWriter func(c *gin.Context, status int, code, detail string)
+
+func authenticatedRouteMiddleware(ctx context.Context, authorizer authz.Authorizer, dexAuthenticator authn.Authenticator, localUsersAuthenticator authn.Authenticator, authRouteMap authz.RouteMap, writeError authErrorWriter) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		log := logging.FromContext(ctx)
-		var userInfo *authn.UserInfo
-
-		loginType, err := c.Cookie(common.LoginCookieName)
+		userInfo, err := authenticateRequest(c, dexAuthenticator, localUsersAuthenticator)
 		if err != nil {
-			errMsg := fmt.Sprintf("Failed to get login type: %v", err)
-			c.JSON(http.StatusUnauthorized, v1.NewNumaflowAPIResponse(&errMsg, nil))
+			writeError(c, http.StatusUnauthorized, "authentication_failed", err.Error())
 			c.Abort()
 			return
 		}
-
-		// Authenticate the user based on the login type.
-		switch loginType {
-		case "dex":
-			userInfo, err = dexAuthenticator.Authenticate(c)
-		case "local":
-			userInfo, err = localUsersAuthenticator.Authenticate(c)
-		default:
-			errMsg := fmt.Sprintf("unidentified login type received: %v", loginType)
-			c.JSON(http.StatusUnauthorized, v1.NewNumaflowAPIResponse(&errMsg, nil))
-			c.Abort()
-			return
-		}
-		if err != nil {
-			errMsg := fmt.Sprintf("Failed to authenticate user: %v", err)
-			c.JSON(http.StatusUnauthorized, v1.NewNumaflowAPIResponse(&errMsg, nil))
-			c.Abort()
-			return
-		}
+		c.Set(authn.UserInfoContextKey, userInfo)
 		// Check if the route requires authorization.
 		if authRouteMap.GetRouteFromContext(c) != nil && authRouteMap.GetRouteFromContext(c).RequiresAuthZ {
 			// Check if the user is authorized to execute the requested action.
@@ -74,8 +61,7 @@ func authMiddleware(ctx context.Context, authorizer authz.Authorizer, dexAuthent
 				c.Next()
 			} else {
 				// If the user is not authorized, return an error.
-				errMsg := "user is not authorized to execute the requested action"
-				c.JSON(http.StatusForbidden, v1.NewNumaflowAPIResponse(&errMsg, nil))
+				writeError(c, http.StatusForbidden, "authorization_denied", "user is not authorized to execute the requested action")
 				c.Abort()
 			}
 		} else if authRouteMap.GetRouteFromContext(c) != nil && !authRouteMap.GetRouteFromContext(c).RequiresAuthZ {
@@ -84,9 +70,49 @@ func authMiddleware(ctx context.Context, authorizer authz.Authorizer, dexAuthent
 		} else {
 			// If the route is not present in the route map, return an error.
 			log.Errorw("route not present in routeMap", "route", authz.GetRouteMapKey(c))
-			errMsg := "Invalid route"
-			c.JSON(http.StatusForbidden, v1.NewNumaflowAPIResponse(&errMsg, nil))
+			writeError(c, http.StatusForbidden, "route_not_authorized", "Invalid route")
 			c.Abort()
 		}
+	}
+}
+
+func authenticateRequest(c *gin.Context, dexAuthenticator authn.Authenticator, localUsersAuthenticator authn.Authenticator) (*authn.UserInfo, error) {
+	if authorization := strings.TrimSpace(c.GetHeader("Authorization")); authorization != "" {
+		scheme, token, found := strings.Cut(authorization, " ")
+		if !found || !strings.EqualFold(scheme, "Bearer") || strings.TrimSpace(token) == "" {
+			return nil, fmt.Errorf("invalid Authorization header")
+		}
+		for _, authenticator := range []authn.Authenticator{dexAuthenticator, localUsersAuthenticator} {
+			tokenAuthenticator, ok := authenticator.(authn.TokenAuthenticator)
+			if !ok || tokenAuthenticator == nil {
+				continue
+			}
+			userInfo, err := tokenAuthenticator.AuthenticateToken(c.Request.Context(), strings.TrimSpace(token))
+			if err == nil {
+				return userInfo, nil
+			}
+		}
+		return nil, fmt.Errorf("invalid or expired bearer token")
+	}
+
+	loginType, err := c.Cookie(common.LoginCookieName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get login type: %v", err)
+	}
+	switch loginType {
+	case "dex":
+		userInfo, err := dexAuthenticator.Authenticate(c)
+		if err != nil {
+			return nil, fmt.Errorf("failed to authenticate user: %v", err)
+		}
+		return userInfo, nil
+	case "local":
+		userInfo, err := localUsersAuthenticator.Authenticate(c)
+		if err != nil {
+			return nil, fmt.Errorf("failed to authenticate user: %v", err)
+		}
+		return userInfo, nil
+	default:
+		return nil, fmt.Errorf("unidentified login type received: %v", loginType)
 	}
 }

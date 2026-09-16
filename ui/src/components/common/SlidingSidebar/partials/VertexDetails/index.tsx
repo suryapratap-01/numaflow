@@ -12,6 +12,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
 import { VertexUpdate } from "./partials/VertexUpdate";
 import { ProcessingRates } from "./partials/ProcessingRates";
 import { Errors } from "./partials/Errors";
@@ -40,6 +41,17 @@ import {
   ObservabilityPatch,
   replaceObservabilityState,
 } from "../../../../../utils/observabilityURLState";
+import { useCapabilities } from "../../../../../api/v2/hooks";
+import { PodViewTarget } from "../../../../../api/v2/types";
+import { PodViewV2QueryProvider } from "../../../../../api/v2/PodViewV2QueryProvider";
+import {
+  PodViewExperience,
+  readPodViewPreference,
+  resolvePodViewExperience,
+  writePodViewPreference,
+} from "../../../../../utils/podViewExperience";
+import { PodViewNext } from "../../../../observability/PodViewNext";
+import { OptInBanner } from "../../../../observability/PodViewNext/OptInBanner";
 
 import "./style.css";
 
@@ -119,7 +131,102 @@ export const VertexDetailsContext = createContext<VertexDetailsContextProps>({
   setPresets: () => {},
 });
 
-export function VertexDetails({
+export function VertexDetails(props: VertexDetailsProps) {
+  return (
+    <PodViewV2QueryProvider>
+      <VertexDetailsResolver {...props} />
+    </PodViewV2QueryProvider>
+  );
+}
+
+function VertexDetailsResolver({ ...props }: VertexDetailsProps) {
+  const history = useHistory();
+  const location = useLocation();
+  const capabilities = useCapabilities();
+  const [storedPreference, setStoredPreference] = useState<
+    PodViewExperience | undefined
+  >(readPodViewPreference);
+  const urlExperience = new URLSearchParams(location.search).get("podView");
+  const experience = resolvePodViewExperience(
+    capabilities.data,
+    urlExperience,
+    storedPreference
+  );
+  const target = useMemo<PodViewTarget>(
+    () =>
+      props.type === "monoVertex"
+        ? {
+            kind: "monoVertex",
+            namespace: props.namespaceId,
+            monoVertex: props.vertexId,
+          }
+        : {
+            kind: "pipelineVertex",
+            namespace: props.namespaceId,
+            pipeline: props.pipelineId,
+            vertex: props.vertexId,
+          },
+    [props.namespaceId, props.pipelineId, props.type, props.vertexId]
+  );
+  const switchExperience = useCallback(
+    (nextExperience: PodViewExperience) => {
+      writePodViewPreference(nextExperience);
+      setStoredPreference(nextExperience);
+      replaceObservabilityState(history, location, {
+        podView: nextExperience,
+      });
+    },
+    [history, location]
+  );
+
+  if (
+    capabilities.isLoading &&
+    (urlExperience === "next" || storedPreference === "next")
+  ) {
+    return (
+      <Box
+        sx={{
+          display: "grid",
+          placeItems: "center",
+          height: "100%",
+        }}
+        data-testid="pod-view-next-policy-loading"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (experience === "next" && capabilities.data) {
+    return (
+      <PodViewNext
+        target={target}
+        allowClassicFallback={capabilities.data.podView.allowClassicFallback}
+        onUseClassic={() => switchExperience("classic")}
+      />
+    );
+  }
+
+  const showOptIn =
+    !!capabilities.data?.podView.eligible &&
+    capabilities.data.podView.allowClassicFallback;
+  return (
+    <VertexDetailsClassic
+      {...props}
+      optInBanner={
+        showOptIn ? (
+          <OptInBanner onTryNext={() => switchExperience("next")} />
+        ) : undefined
+      }
+    />
+  );
+}
+
+interface VertexDetailsClassicProps extends VertexDetailsProps {
+  optInBanner?: React.ReactNode;
+}
+
+function VertexDetailsClassic({
   namespaceId,
   pipelineId,
   vertexId,
@@ -129,7 +236,8 @@ export function VertexDetails({
   type,
   setModalOnClose,
   refresh,
-}: VertexDetailsProps) {
+  optInBanner,
+}: VertexDetailsClassicProps) {
   const { addError, disableMetricsCharts } =
     useContext<AppContextProps>(AppContext);
   const history = useHistory();
@@ -382,9 +490,7 @@ export function VertexDetails({
 
       setMetricsPod(pod);
       setPresets(nextPresets);
-      setExpanded((previousExpanded) =>
-        new Set(previousExpanded).add(panelId)
-      );
+      setExpanded((previousExpanded) => new Set(previousExpanded).add(panelId));
       setTabValue(METRICS_TAB_INDEX);
       if (isDeepLinkedVertex) {
         replaceObservabilityState(history, location, {
@@ -423,6 +529,7 @@ export function VertexDetails({
           height: "100%",
         }}
       >
+        {optInBanner}
         <Box className="vertex-details-header">
           {header}
           {tabValue !== METRICS_TAB_INDEX && (

@@ -12,6 +12,7 @@ ensure_yarn
 
 build_ui() {
     yarn --cwd ui install
+    yarn --cwd ui generate:api-v2
     NODE_OPTIONS="--max-old-space-size=2048" JOBS=max yarn --cwd ui build
 }
 
