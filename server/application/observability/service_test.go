@@ -146,7 +146,7 @@ func TestCapabilities(t *testing.T) {
 		defaultView     PodViewExperience
 		classicFallback bool
 	}{
-		{PodViewModeDisabled, false, PodViewExperienceClassic, true},
+		{PodViewModeDisabled, true, PodViewExperienceClassic, true},
 		{PodViewModeOptIn, true, PodViewExperienceClassic, true},
 		{PodViewModeDefault, true, PodViewExperienceNext, true},
 		{PodViewModeRequired, true, PodViewExperienceNext, false},

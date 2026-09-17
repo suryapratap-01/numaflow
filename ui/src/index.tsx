@@ -6,10 +6,8 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { ThemeProvider } from "@mui/material";
 import { getBaseHref } from "./utils";
-import {
-  ThemeContextProvider,
-  useThemeContext,
-} from "./contexts/ThemeContext";
+import { ThemeContextProvider, useThemeContext } from "./contexts/ThemeContext";
+import { PodViewExperienceProvider } from "./contexts/PodViewExperienceContext";
 import { createLightTheme, createDarkTheme } from "./themes";
 
 const root = ReactDOM.createRoot(
@@ -34,7 +32,9 @@ root.render(
   <React.StrictMode>
     <ThemeContextProvider>
       <BrowserRouter basename={getBaseHref()}>
-        <ThemedApp />
+        <PodViewExperienceProvider>
+          <ThemedApp />
+        </PodViewExperienceProvider>
       </BrowserRouter>
     </ThemeContextProvider>
   </React.StrictMode>

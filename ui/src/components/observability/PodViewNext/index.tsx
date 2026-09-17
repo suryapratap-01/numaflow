@@ -16,8 +16,6 @@ import "./style.css";
 
 export interface PodViewNextProps {
   target: PodViewTarget;
-  allowClassicFallback: boolean;
-  onUseClassic: () => void;
 }
 
 const futureTabs = [
@@ -28,11 +26,7 @@ const futureTabs = [
   "Errors",
 ];
 
-export function PodViewNext({
-  target,
-  allowClassicFallback,
-  onUseClassic,
-}: PodViewNextProps) {
+export function PodViewNext({ target }: PodViewNextProps) {
   const summary = useVertexSummary(target);
   const status = useVertexStatus(target);
   const title = summary.data
@@ -84,16 +78,6 @@ export function PodViewNext({
           )}
         </Box>
         <Box className="pod-view-next-actions">
-          {allowClassicFallback && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={onUseClassic}
-              data-testid="use-classic-pod-view"
-            >
-              Use classic view
-            </Button>
-          )}
           <CopyViewLinkButton iconOnly />
         </Box>
       </Box>

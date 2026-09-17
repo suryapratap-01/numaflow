@@ -33,6 +33,8 @@ import {
 import { VersionDetailsProps } from "./components/common/SlidingSidebar/partials/VersionDetails";
 import AccountMenu from "./components/common/AccountMenu";
 import { ThemeToggle } from "./components/common/ThemeToggle";
+import { PodViewBetaToggle } from "./components/common/PodViewBetaToggle";
+import { PodViewV2QueryProvider } from "./api/v2/PodViewV2QueryProvider";
 import { getBaseHref } from "./utils";
 import logo from "./images/icon.png";
 import textLogo from "./images/text-icon.png";
@@ -301,107 +303,110 @@ function App(props: AppProps) {
           setUserInfo,
         }}
       >
-        <ScopedCssBaseline sx={{ fontFamily: "Avenir, sans-serif" }}>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              width: "100% ",
-              height: "100%",
-            }}
-          >
-            {!EXCLUDE_APP_BARS[location.pathname] && (
-              <Box
-                sx={{
-                  height: "6.4rem",
-                }}
-              >
-                <AppBar
-                  position="fixed"
+        <PodViewV2QueryProvider>
+          <ScopedCssBaseline sx={{ fontFamily: "Avenir, sans-serif" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                width: "100% ",
+                height: "100%",
+              }}
+            >
+              {!EXCLUDE_APP_BARS[location.pathname] && (
+                <Box
                   sx={{
-                    zIndex: (theme) => theme.zIndex.drawer + 1,
+                    height: "6.4rem",
                   }}
                 >
-                  <Toolbar>
-                    <img src={logo} alt="logo" className={"logo"} />
+                  <AppBar
+                    position="fixed"
+                    sx={{
+                      zIndex: (theme) => theme.zIndex.drawer + 1,
+                    }}
+                  >
+                    <Toolbar>
+                      <img src={logo} alt="logo" className={"logo"} />
 
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        mt: versionDetails?.Version ? "1.5rem" : 0,
-                      }}
-                    >
-                      <img
-                        src={textLogo}
-                        alt="text-logo"
-                        className={"text-logo"}
-                      />
                       <Box
                         sx={{
-                          cursor: "pointer",
-                          ml: "1.296rem",
-                          color: "#A9A9A9",
+                          display: "flex",
+                          flexDirection: "column",
+                          mt: versionDetails?.Version ? "1.5rem" : 0,
                         }}
-                        onClick={handleVersionDetails}
                       >
-                        {versionDetails?.Version}
+                        <img
+                          src={textLogo}
+                          alt="text-logo"
+                          className={"text-logo"}
+                        />
+                        <Box
+                          sx={{
+                            cursor: "pointer",
+                            ml: "1.296rem",
+                            color: "#A9A9A9",
+                          }}
+                          onClick={handleVersionDetails}
+                        >
+                          {versionDetails?.Version}
+                        </Box>
                       </Box>
-                    </Box>
 
-                    <Box sx={{ flexGrow: 1 }} />
-                    <ThemeToggle />
-                    <AccountMenu />
-                  </Toolbar>
-                </AppBar>
-              </Box>
-            )}
-            {!EXCLUDE_CRUMBS[location.pathname] && (
+                      <Box sx={{ flexGrow: 1 }} />
+                      <PodViewBetaToggle />
+                      <ThemeToggle />
+                      <AccountMenu />
+                    </Toolbar>
+                  </AppBar>
+                </Box>
+              )}
+              {!EXCLUDE_CRUMBS[location.pathname] && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    width: "100%",
+                    overflow: "auto",
+                    height: "3.3rem",
+                    background: "var(--bg-secondary)",
+                    zIndex: (theme) => theme.zIndex.drawer - 1,
+                    position: "fixed",
+                    top: "6rem",
+                  }}
+                >
+                  <Breadcrumbs />
+                </Box>
+              )}
               <Box
                 sx={{
                   display: "flex",
                   flexDirection: "column",
                   width: "100%",
+                  height: "100%",
                   overflow: "auto",
-                  height: "3.3rem",
-                  background: "var(--bg-secondary)",
-                  zIndex: (theme) => theme.zIndex.drawer - 1,
-                  position: "fixed",
-                  top: "6rem",
+                  marginTop: EXCLUDE_CRUMBS[location.pathname] ? 0 : "4rem",
                 }}
               >
-                <Breadcrumbs />
+                {routes}
               </Box>
-            )}
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                width: "100%",
-                height: "100%",
-                overflow: "auto",
-                marginTop: EXCLUDE_CRUMBS[location.pathname] ? 0 : "4rem",
-              }}
-            >
-              {routes}
             </Box>
-          </Box>
-        </ScopedCssBaseline>
+          </ScopedCssBaseline>
 
-        <Drawer
-          anchor="right"
-          open={!!sidebarProps}
-          onClose={handleSideBarClose}
-          className="sidebar-drawer"
-        >
-          {sidebarProps && (
-            <SlidingSidebar
-              {...sidebarProps}
-              pageWidth={pageWidth}
-              parentCloseIndicator={sidebarCloseIndicator}
-            />
-          )}
-        </Drawer>
+          <Drawer
+            anchor="right"
+            open={!!sidebarProps}
+            onClose={handleSideBarClose}
+            className="sidebar-drawer"
+          >
+            {sidebarProps && (
+              <SlidingSidebar
+                {...sidebarProps}
+                pageWidth={pageWidth}
+                parentCloseIndicator={sidebarCloseIndicator}
+              />
+            )}
+          </Drawer>
+        </PodViewV2QueryProvider>
       </AppContext.Provider>
     </div>
   );

@@ -9,6 +9,9 @@ import {
 import { VertexDetails } from "./index";
 import { BrowserRouter, MemoryRouter, useLocation } from "react-router-dom";
 import { AppContext } from "../../../../../App";
+import { PodViewV2QueryProvider } from "../../../../../api/v2/PodViewV2QueryProvider";
+import { PodViewExperienceProvider } from "../../../../../contexts/PodViewExperienceContext";
+import { PodViewBetaToggle } from "../../../PodViewBetaToggle";
 
 import "@testing-library/jest-dom";
 
@@ -120,6 +123,14 @@ const SearchProbe = () => {
   return <div data-testid="location-search">{location.search}</div>;
 };
 
+const TestProviders = ({ children }: { children: React.ReactNode }) => (
+  <BrowserRouter>
+    <PodViewExperienceProvider>
+      <PodViewV2QueryProvider>{children}</PodViewV2QueryProvider>
+    </PodViewExperienceProvider>
+  </BrowserRouter>
+);
+
 describe("VertexDetails", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -138,7 +149,7 @@ describe("VertexDetails", () => {
         setModalOnClose={jest.fn()}
         refresh={jest.fn()}
       />,
-      { wrapper: BrowserRouter }
+      { wrapper: TestProviders }
     );
 
     await waitFor(() => {
@@ -160,7 +171,7 @@ describe("VertexDetails", () => {
         setModalOnClose={jest.fn()}
         refresh={jest.fn()}
       />,
-      { wrapper: BrowserRouter }
+      { wrapper: TestProviders }
     );
 
     await waitFor(() => {
@@ -182,7 +193,7 @@ describe("VertexDetails", () => {
         setModalOnClose={jest.fn()}
         refresh={jest.fn()}
       />,
-      { wrapper: BrowserRouter }
+      { wrapper: TestProviders }
     );
 
     await waitFor(() => {
@@ -204,7 +215,7 @@ describe("VertexDetails", () => {
         setModalOnClose={jest.fn()}
         refresh={jest.fn()}
       />,
-      { wrapper: BrowserRouter }
+      { wrapper: TestProviders }
     );
 
     await waitFor(() => {
@@ -219,17 +230,21 @@ describe("VertexDetails", () => {
         value={{ addError: jest.fn(), disableMetricsCharts: false } as any}
       >
         <BrowserRouter>
-          <VertexDetails
-            namespaceId="test-namespace"
-            pipelineId="test-pipeline"
-            vertexId="test-vertex"
-            vertexSpecs={{}}
-            vertexMetrics={{}}
-            buffers={[]}
-            type="sink"
-            setModalOnClose={jest.fn()}
-            refresh={jest.fn()}
-          />
+          <PodViewExperienceProvider>
+            <PodViewV2QueryProvider>
+              <VertexDetails
+                namespaceId="test-namespace"
+                pipelineId="test-pipeline"
+                vertexId="test-vertex"
+                vertexSpecs={{}}
+                vertexMetrics={{}}
+                buffers={[]}
+                type="sink"
+                setModalOnClose={jest.fn()}
+                refresh={jest.fn()}
+              />
+            </PodViewV2QueryProvider>
+          </PodViewExperienceProvider>
         </BrowserRouter>
       </AppContext.Provider>
     );
@@ -253,17 +268,21 @@ describe("VertexDetails", () => {
         value={{ addError: jest.fn(), disableMetricsCharts: false } as any}
       >
         <BrowserRouter>
-          <VertexDetails
-            namespaceId="test-namespace"
-            pipelineId="test-pipeline"
-            vertexId="test-vertex"
-            vertexSpecs={{}}
-            vertexMetrics={{}}
-            buffers={[]}
-            type="sink"
-            setModalOnClose={jest.fn()}
-            refresh={jest.fn()}
-          />
+          <PodViewExperienceProvider>
+            <PodViewV2QueryProvider>
+              <VertexDetails
+                namespaceId="test-namespace"
+                pipelineId="test-pipeline"
+                vertexId="test-vertex"
+                vertexSpecs={{}}
+                vertexMetrics={{}}
+                buffers={[]}
+                type="sink"
+                setModalOnClose={jest.fn()}
+                refresh={jest.fn()}
+              />
+            </PodViewV2QueryProvider>
+          </PodViewExperienceProvider>
         </BrowserRouter>
       </AppContext.Provider>
     );
@@ -300,17 +319,21 @@ describe("VertexDetails", () => {
             onClick={() => setDisableMetricsCharts(true)}
           />
           <BrowserRouter>
-            <VertexDetails
-              namespaceId="test-namespace"
-              pipelineId="test-pipeline"
-              vertexId="test-vertex"
-              vertexSpecs={{}}
-              vertexMetrics={{}}
-              buffers={[]}
-              type="sink"
-              setModalOnClose={jest.fn()}
-              refresh={jest.fn()}
-            />
+            <PodViewExperienceProvider>
+              <PodViewV2QueryProvider>
+                <VertexDetails
+                  namespaceId="test-namespace"
+                  pipelineId="test-pipeline"
+                  vertexId="test-vertex"
+                  vertexSpecs={{}}
+                  vertexMetrics={{}}
+                  buffers={[]}
+                  type="sink"
+                  setModalOnClose={jest.fn()}
+                  refresh={jest.fn()}
+                />
+              </PodViewV2QueryProvider>
+            </PodViewExperienceProvider>
           </BrowserRouter>
         </AppContext.Provider>
       );
@@ -340,7 +363,7 @@ describe("VertexDetails", () => {
         setModalOnClose={jest.fn()}
         refresh={jest.fn()}
       />,
-      { wrapper: BrowserRouter }
+      { wrapper: TestProviders }
     );
     await waitFor(() => {
       expect(screen.getByText("Sink Vertex")).toBeInTheDocument();
@@ -390,7 +413,7 @@ describe("VertexDetails", () => {
         setModalOnClose={jest.fn()}
         refresh={jest.fn()}
       />,
-      { wrapper: BrowserRouter }
+      { wrapper: TestProviders }
     );
 
     await waitFor(() => {
@@ -431,7 +454,7 @@ describe("VertexDetails", () => {
         setModalOnClose={jest.fn()}
         refresh={jest.fn()}
       />,
-      { wrapper: BrowserRouter }
+      { wrapper: TestProviders }
     );
     await waitFor(() => {
       expect(screen.getByText("Sink Vertex")).toBeInTheDocument();
@@ -496,17 +519,22 @@ describe("VertexDetails", () => {
           initialEntries={["/?vertex=test-vertex&vertexTab=spec&specLine=12"]}
         >
           <SearchProbe />
-          <VertexDetails
-            namespaceId="test-namespace"
-            pipelineId="test-pipeline"
-            vertexId="test-vertex"
-            vertexSpecs={{}}
-            vertexMetrics={{}}
-            buffers={[]}
-            type="sink"
-            setModalOnClose={jest.fn()}
-            refresh={jest.fn()}
-          />
+          <PodViewExperienceProvider>
+            <PodViewV2QueryProvider>
+              <PodViewBetaToggle />
+              <VertexDetails
+                namespaceId="test-namespace"
+                pipelineId="test-pipeline"
+                vertexId="test-vertex"
+                vertexSpecs={{}}
+                vertexMetrics={{}}
+                buffers={[]}
+                type="sink"
+                setModalOnClose={jest.fn()}
+                refresh={jest.fn()}
+              />
+            </PodViewV2QueryProvider>
+          </PodViewExperienceProvider>
         </MemoryRouter>
       </AppContext.Provider>
     );
@@ -539,17 +567,21 @@ describe("VertexDetails", () => {
             "/?vertex=test-vertex&vertexTab=metrics&pod=shared-pod",
           ]}
         >
-          <VertexDetails
-            namespaceId="test-namespace"
-            pipelineId="test-pipeline"
-            vertexId="test-vertex"
-            vertexSpecs={{}}
-            vertexMetrics={{}}
-            buffers={[]}
-            type="sink"
-            setModalOnClose={jest.fn()}
-            refresh={jest.fn()}
-          />
+          <PodViewExperienceProvider>
+            <PodViewV2QueryProvider>
+              <VertexDetails
+                namespaceId="test-namespace"
+                pipelineId="test-pipeline"
+                vertexId="test-vertex"
+                vertexSpecs={{}}
+                vertexMetrics={{}}
+                buffers={[]}
+                type="sink"
+                setModalOnClose={jest.fn()}
+                refresh={jest.fn()}
+              />
+            </PodViewV2QueryProvider>
+          </PodViewExperienceProvider>
         </MemoryRouter>
       </AppContext.Provider>
     );
@@ -569,17 +601,22 @@ describe("VertexDetails", () => {
           initialEntries={["/?vertex=test-vertex&vertexTab=buffers"]}
         >
           <SearchProbe />
-          <VertexDetails
-            namespaceId="test-namespace"
-            pipelineId="test-pipeline"
-            vertexId="test-vertex"
-            vertexSpecs={{}}
-            vertexMetrics={{}}
-            buffers={null}
-            type="sink"
-            setModalOnClose={jest.fn()}
-            refresh={jest.fn()}
-          />
+          <PodViewExperienceProvider>
+            <PodViewV2QueryProvider>
+              <PodViewBetaToggle />
+              <VertexDetails
+                namespaceId="test-namespace"
+                pipelineId="test-pipeline"
+                vertexId="test-vertex"
+                vertexSpecs={{}}
+                vertexMetrics={{}}
+                buffers={null}
+                type="sink"
+                setModalOnClose={jest.fn()}
+                refresh={jest.fn()}
+              />
+            </PodViewV2QueryProvider>
+          </PodViewExperienceProvider>
         </MemoryRouter>
       </AppContext.Provider>
     );
@@ -606,7 +643,7 @@ describe("VertexDetails", () => {
         setModalOnClose={jest.fn()}
         refresh={jest.fn()}
       />,
-      { wrapper: BrowserRouter }
+      { wrapper: TestProviders }
     );
 
     const header = document.querySelector(".vertex-details-header");
@@ -623,17 +660,21 @@ describe("VertexDetails", () => {
         value={{ addError: jest.fn(), disableMetricsCharts: false } as any}
       >
         <BrowserRouter>
-          <VertexDetails
-            namespaceId="test-namespace"
-            pipelineId="test-pipeline"
-            vertexId="test-vertex"
-            vertexSpecs={{}}
-            vertexMetrics={{}}
-            buffers={[]}
-            type="sink"
-            setModalOnClose={jest.fn()}
-            refresh={jest.fn()}
-          />
+          <PodViewExperienceProvider>
+            <PodViewV2QueryProvider>
+              <VertexDetails
+                namespaceId="test-namespace"
+                pipelineId="test-pipeline"
+                vertexId="test-vertex"
+                vertexSpecs={{}}
+                vertexMetrics={{}}
+                buffers={[]}
+                type="sink"
+                setModalOnClose={jest.fn()}
+                refresh={jest.fn()}
+              />
+            </PodViewV2QueryProvider>
+          </PodViewExperienceProvider>
         </BrowserRouter>
       </AppContext.Provider>
     );
@@ -650,7 +691,7 @@ describe("VertexDetails", () => {
     });
   });
 
-  it("switches to the v2-only shell and preserves deep-link state on fallback", async () => {
+  it("switches to the v2-only shell and preserves deep-link state when returning to classic", async () => {
     localStorage.setItem("numaflow.podView.experience", "next");
     fetchMock.mockResponse((request) => {
       if (request.url.endsWith("/api/v2/capabilities")) {
@@ -736,17 +777,22 @@ describe("VertexDetails", () => {
           ]}
         >
           <SearchProbe />
-          <VertexDetails
-            namespaceId="test-namespace"
-            pipelineId="test-pipeline"
-            vertexId="test-vertex"
-            vertexSpecs={{}}
-            vertexMetrics={{}}
-            buffers={[]}
-            type="sink"
-            setModalOnClose={jest.fn()}
-            refresh={jest.fn()}
-          />
+          <PodViewExperienceProvider>
+            <PodViewV2QueryProvider>
+              <PodViewBetaToggle />
+              <VertexDetails
+                namespaceId="test-namespace"
+                pipelineId="test-pipeline"
+                vertexId="test-vertex"
+                vertexSpecs={{}}
+                vertexMetrics={{}}
+                buffers={[]}
+                type="sink"
+                setModalOnClose={jest.fn()}
+                refresh={jest.fn()}
+              />
+            </PodViewV2QueryProvider>
+          </PodViewExperienceProvider>
         </MemoryRouter>
       </AppContext.Provider>
     );
@@ -759,7 +805,7 @@ describe("VertexDetails", () => {
       )
     ).toBe(true);
 
-    fireEvent.click(screen.getByTestId("use-classic-pod-view"));
+    fireEvent.click(screen.getByTestId("pod-view-experience-classic"));
     expect(await screen.findByText("Mocked pods")).toBeInTheDocument();
     expect(screen.getByTestId("location-search")).toHaveTextContent(
       "podView=classic"

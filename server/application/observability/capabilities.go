@@ -26,17 +26,14 @@ var phaseOneOperations = []string{
 func (s *Service) GetCapabilities() Capabilities {
 	podView := PodViewCapability{
 		Mode:                 s.podViewMode,
+		Eligible:             true,
 		DefaultExperience:    PodViewExperienceClassic,
 		AllowClassicFallback: true,
 	}
 	switch s.podViewMode {
-	case PodViewModeOptIn:
-		podView.Eligible = true
 	case PodViewModeDefault:
-		podView.Eligible = true
 		podView.DefaultExperience = PodViewExperienceNext
 	case PodViewModeRequired:
-		podView.Eligible = true
 		podView.DefaultExperience = PodViewExperienceNext
 		podView.AllowClassicFallback = false
 	}

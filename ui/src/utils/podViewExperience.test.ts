@@ -31,19 +31,19 @@ const capabilities = (
 describe("Pod View experience resolution", () => {
   beforeEach(() => localStorage.clear());
 
-  it("keeps ineligible and disabled users on classic", () => {
+  it("allows the beta preference regardless of server rollout mode", () => {
     expect(resolvePodViewExperience(capabilities("disabled"), "next")).toBe(
-      "classic"
+      "next"
     );
     expect(
       resolvePodViewExperience(
         capabilities("optIn", { eligible: false }),
         "next"
       )
-    ).toBe("classic");
+    ).toBe("next");
   });
 
-  it("uses URL, then stored preference, then server default", () => {
+  it("uses URL, then stored preference, then classic by default", () => {
     expect(resolvePodViewExperience(capabilities("optIn"), "next")).toBe(
       "next"
     );
@@ -51,7 +51,7 @@ describe("Pod View experience resolution", () => {
       "next"
     );
     expect(resolvePodViewExperience(capabilities("default"), null)).toBe(
-      "next"
+      "classic"
     );
   });
 

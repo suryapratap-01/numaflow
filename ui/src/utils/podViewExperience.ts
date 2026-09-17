@@ -21,24 +21,18 @@ export function resolvePodViewExperience(
   storedPreference = readPodViewPreference()
 ): PodViewExperience {
   const podView = capabilities?.podView;
-  if (!podView || !podView.eligible || podView.mode === "disabled") {
-    return "classic";
-  }
-  if (podView.mode === "required") {
+  if (podView?.mode === "required") {
     return "next";
   }
 
   const requested = parseExperience(urlOverride);
-  if (requested && (requested === "next" || podView.allowClassicFallback)) {
+  if (requested) {
     return requested;
   }
-  if (
-    storedPreference &&
-    (storedPreference === "next" || podView.allowClassicFallback)
-  ) {
+  if (storedPreference) {
     return storedPreference;
   }
-  return podView.defaultExperience;
+  return "classic";
 }
 
 function parseExperience(value: string | null): PodViewExperience | undefined {

@@ -109,8 +109,6 @@ function renderNext() {
               pipeline: "orders",
               vertex: "map",
             }}
-            allowClassicFallback
-            onUseClassic={jest.fn()}
           />
         </QueryClientProvider>
       </AppContext.Provider>

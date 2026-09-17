@@ -43,15 +43,9 @@ import {
 } from "../../../../../utils/observabilityURLState";
 import { useCapabilities } from "../../../../../api/v2/hooks";
 import { PodViewTarget } from "../../../../../api/v2/types";
-import { PodViewV2QueryProvider } from "../../../../../api/v2/PodViewV2QueryProvider";
-import {
-  PodViewExperience,
-  readPodViewPreference,
-  resolvePodViewExperience,
-  writePodViewPreference,
-} from "../../../../../utils/podViewExperience";
+import { resolvePodViewExperience } from "../../../../../utils/podViewExperience";
+import { usePodViewExperience } from "../../../../../contexts/PodViewExperienceContext";
 import { PodViewNext } from "../../../../observability/PodViewNext";
-import { OptInBanner } from "../../../../observability/PodViewNext/OptInBanner";
 
 import "./style.css";
 
@@ -132,20 +126,13 @@ export const VertexDetailsContext = createContext<VertexDetailsContextProps>({
 });
 
 export function VertexDetails(props: VertexDetailsProps) {
-  return (
-    <PodViewV2QueryProvider>
-      <VertexDetailsResolver {...props} />
-    </PodViewV2QueryProvider>
-  );
+  return <VertexDetailsResolver {...props} />;
 }
 
 function VertexDetailsResolver({ ...props }: VertexDetailsProps) {
-  const history = useHistory();
   const location = useLocation();
   const capabilities = useCapabilities();
-  const [storedPreference, setStoredPreference] = useState<
-    PodViewExperience | undefined
-  >(readPodViewPreference);
+  const { experience: storedPreference } = usePodViewExperience();
   const urlExperience = new URLSearchParams(location.search).get("podView");
   const experience = resolvePodViewExperience(
     capabilities.data,
@@ -168,17 +155,6 @@ function VertexDetailsResolver({ ...props }: VertexDetailsProps) {
           },
     [props.namespaceId, props.pipelineId, props.type, props.vertexId]
   );
-  const switchExperience = useCallback(
-    (nextExperience: PodViewExperience) => {
-      writePodViewPreference(nextExperience);
-      setStoredPreference(nextExperience);
-      replaceObservabilityState(history, location, {
-        podView: nextExperience,
-      });
-    },
-    [history, location]
-  );
-
   if (
     capabilities.isLoading &&
     (urlExperience === "next" || storedPreference === "next")
@@ -198,32 +174,10 @@ function VertexDetailsResolver({ ...props }: VertexDetailsProps) {
   }
 
   if (experience === "next" && capabilities.data) {
-    return (
-      <PodViewNext
-        target={target}
-        allowClassicFallback={capabilities.data.podView.allowClassicFallback}
-        onUseClassic={() => switchExperience("classic")}
-      />
-    );
+    return <PodViewNext target={target} />;
   }
 
-  const showOptIn =
-    !!capabilities.data?.podView.eligible &&
-    capabilities.data.podView.allowClassicFallback;
-  return (
-    <VertexDetailsClassic
-      {...props}
-      optInBanner={
-        showOptIn ? (
-          <OptInBanner onTryNext={() => switchExperience("next")} />
-        ) : undefined
-      }
-    />
-  );
-}
-
-interface VertexDetailsClassicProps extends VertexDetailsProps {
-  optInBanner?: React.ReactNode;
+  return <VertexDetailsClassic {...props} />;
 }
 
 function VertexDetailsClassic({
@@ -236,8 +190,7 @@ function VertexDetailsClassic({
   type,
   setModalOnClose,
   refresh,
-  optInBanner,
-}: VertexDetailsClassicProps) {
+}: VertexDetailsProps) {
   const { addError, disableMetricsCharts } =
     useContext<AppContextProps>(AppContext);
   const history = useHistory();
@@ -529,7 +482,6 @@ function VertexDetailsClassic({
           height: "100%",
         }}
       >
-        {optInBanner}
         <Box className="vertex-details-header">
           {header}
           {tabValue !== METRICS_TAB_INDEX && (
