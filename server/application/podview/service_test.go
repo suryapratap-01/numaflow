@@ -43,7 +43,7 @@ func TestCapabilities(t *testing.T) {
 			assert.Equal(t, test.eligible, capabilities.PodView.Eligible)
 			assert.Equal(t, ExperienceClassic, capabilities.PodView.DefaultExperience)
 			assert.True(t, capabilities.PodView.AllowClassicFallback)
-			assert.Equal(t, []string{"getCapabilities"}, capabilities.Operations)
+			assert.Equal(t, []string{"getCapabilities", "getPipelineVertexSummary"}, capabilities.Operations)
 			assert.Equal(t, Limits{
 				DefaultPageSize:     50,
 				MaximumPageSize:     200,

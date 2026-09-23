@@ -29,7 +29,8 @@ func (s *Service) GetCapabilities() Capabilities {
 	return Capabilities{
 		APIVersion: "v2",
 		PodView:    podView,
-		Operations: []string{"getCapabilities"},
+		// operationIds must match OpenAPI and mounted handlers (see server/apis/v2).
+		Operations: []string{"getCapabilities", "getPipelineVertexSummary"},
 		Limits: Limits{
 			DefaultPageSize:     50,
 			MaximumPageSize:     200,
