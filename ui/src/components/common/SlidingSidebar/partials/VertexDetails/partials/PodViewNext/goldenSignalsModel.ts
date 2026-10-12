@@ -439,14 +439,23 @@ function trafficCard(input: VertexHealthInput): HealthCard {
   };
 }
 
+/** bufferPercentFull is usage relative to the buffer's usage limit; 100 means writers are blocked. */
+export function bufferPercentFull(buffer: BufferInfo): number {
+  if (buffer.isFull) return 100;
+  const ratio =
+    buffer.bufferUsageLimit > 0 ? buffer.bufferUsage / buffer.bufferUsageLimit : buffer.bufferUsage;
+  return Math.min(100, Math.round(ratio * 100));
+}
+
 function backlogCard(input: VertexHealthInput): HealthCard {
   const base = { id: "backlog" as const, index: "03", title: "Backlog" };
   const { pending, rate1m } = input.daemon;
   const buffers = input.buffers || [];
   const fullest = buffers.reduce<BufferInfo | undefined>(
-    (max, buffer) => (!max || buffer.bufferUsage > max.bufferUsage ? buffer : max),
+    (max, buffer) => (!max || bufferPercentFull(buffer) > bufferPercentFull(max) ? buffer : max),
     undefined
   );
+  const percentFull = fullest ? bufferPercentFull(fullest) : undefined;
   const lag = watermarkLag(input.watermarkEdges, input.vertexId, input.now);
   const pendingSeries = input.metricsEnabled ? input.series.pending : undefined;
   const trend = trendVsAverage(pendingSeries);
@@ -459,7 +468,7 @@ function backlogCard(input: VertexHealthInput): HealthCard {
 
   let value: string;
   if (pending === undefined) {
-    value = fullest ? `${Math.round(fullest.bufferUsage * 100)}% buffer used` : "Pending not reported";
+    value = percentFull !== undefined ? `buffer ${percentFull}% full` : "Pending not reported";
   } else if (drain === 0) {
     value = "No backlog";
   } else if (drain === Infinity) {
@@ -471,11 +480,7 @@ function backlogCard(input: VertexHealthInput): HealthCard {
   const detail = [
     pending !== undefined ? `${formatCompact(pending)} pending` : undefined,
     formatTrend(trend, "/ 30m"),
-    fullest
-      ? `buffer ${Math.round(fullest.bufferUsage * 100)}% of ${Math.round(
-          fullest.bufferUsageLimit * 100
-        )}%`
-      : undefined,
+    percentFull !== undefined ? `buffer ${percentFull}% full` : undefined,
     lag !== undefined ? `WM lag ${formatElapsed(lag)}` : undefined,
   ]
     .filter(Boolean)

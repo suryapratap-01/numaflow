@@ -1,4 +1,5 @@
 import {
+  bufferPercentFull,
   buildVertexHealth,
   drainTime,
   formatAgo,
@@ -249,6 +250,24 @@ describe("buildVertexHealth", () => {
     expect(slowing.tone).toBe("warn");
   });
 
+  it("measures buffer fullness against the usage limit", () => {
+    const buffer = {
+      bufferName: "b",
+      ackPendingCount: 0,
+      pendingCount: 0,
+      totalMessages: 0,
+      bufferLength: 100,
+      isFull: false,
+      bufferUsage: 0.4,
+      bufferUsageLimit: 0.8,
+    };
+    expect(bufferPercentFull(buffer)).toBe(50);
+    expect(bufferPercentFull({ ...buffer, bufferUsage: 0.8 })).toBe(100);
+    expect(bufferPercentFull({ ...buffer, bufferUsage: 0.95 })).toBe(100);
+    expect(bufferPercentFull({ ...buffer, bufferUsage: 0.1, isFull: true })).toBe(100);
+    expect(bufferPercentFull({ ...buffer, bufferUsageLimit: 0 })).toBe(40);
+  });
+
   it("covers each backlog state and rule", () => {
     const backlog = (overrides: Partial<VertexHealthInput>) =>
       card(buildVertexHealth(input(overrides)), "backlog");
@@ -290,11 +309,18 @@ describe("buildVertexHealth", () => {
     expect(withBuffer).toEqual(
       expect.objectContaining({
         value: "<1 min to drain",
-        detail: "3 pending · buffer 12% of 80% · WM lag 2.1 s",
+        detail: "3 pending · buffer 15% full · WM lag 2.1 s",
         tone: "ok",
         inspect: { kind: "tab", tab: "buffers" },
       })
     );
+    expect(backlog({ ...pipeline, daemon: { rate1m: 10 }, buffers: [buffer] }).value).toBe(
+      "buffer 15% full"
+    );
+    expect(
+      backlog({ ...pipeline, buffers: [buffer, { ...buffer, bufferUsage: 0.4, bufferUsageLimit: 0.5 }] })
+        .detail
+    ).toContain("buffer 80% full");
     expect(backlog({ ...pipeline, buffers: [{ ...buffer, bufferUsage: 0.65 }] }).tone).toBe("warn");
     expect(backlog({ ...pipeline, buffers: [{ ...buffer, isFull: true }] }).tone).toBe("critical");
     expect(
