@@ -17,6 +17,11 @@
   padding: 1.6rem;
 }
 
+.pod-view-next-scroll > .vertex-health {
+  flex-shrink: 0;
+  margin-bottom: 1.6rem;
+}
+
 .pod-view-next-workspace {
   display: grid;
   flex: 1;

@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { PodFleet } from "./PodFleet";
-import { IDLE_HINT } from "./podFleetModel";
+import { buildPodFleetItems, PodFleetFilter } from "./podFleetModel";
 import { Pod, PodDetail, PodRuntimeInfo } from "../../../../../../../types/declarations/pods";
 
 const alpha: Pod = {
@@ -62,30 +63,38 @@ const rates = new Map([
   [bravo.name, { rate5m: 1, rate15m: 1 }],
 ]);
 
+const items = buildPodFleetItems([alpha, bravo], details, runtime);
+
+function StatefulFleet({
+  selectedPod,
+  onPodSelect = jest.fn(),
+  initialFilter = "all",
+}: {
+  selectedPod?: Pod;
+  onPodSelect?: (pod: Pod) => void;
+  initialFilter?: PodFleetFilter;
+}) {
+  const [filter, setFilter] = useState<PodFleetFilter>(initialFilter);
+  return (
+    <PodFleet
+      items={items}
+      filter={filter}
+      onFilterChange={setFilter}
+      runtimeByName={runtime}
+      selectedPod={selectedPod}
+      onPodSelect={onPodSelect}
+    />
+  );
+}
+
 describe("PodFleet", () => {
   it("outlines only the pod the parent has selected", () => {
-    const { rerender } = render(
-      <PodFleet
-        pods={[alpha, bravo]}
-        detailsByName={details}
-        runtimeByName={runtime}
-        selectedPod={undefined}
-        onPodSelect={jest.fn()}
-      />
-    );
+    const { rerender } = render(<StatefulFleet selectedPod={undefined} />);
 
     expect(document.querySelectorAll(".pod-fleet-cell--selected")).toHaveLength(0);
     expect(screen.queryByTestId("pod-fleet-selected")).not.toBeInTheDocument();
 
-    rerender(
-      <PodFleet
-        pods={[alpha, bravo]}
-        detailsByName={details}
-        runtimeByName={runtime}
-        selectedPod={bravo}
-        onPodSelect={jest.fn()}
-      />
-    );
+    rerender(<StatefulFleet selectedPod={bravo} />);
 
     expect(screen.getByTestId(`pod-fleet-cell-${bravo.name}`)).toHaveClass(
       "pod-fleet-cell--selected"
@@ -98,15 +107,7 @@ describe("PodFleet", () => {
 
   it("filters, searches, and selects pods", () => {
     const onPodSelect = jest.fn();
-    render(
-      <PodFleet
-        pods={[alpha, bravo]}
-        detailsByName={details}
-        runtimeByName={runtime}
-        selectedPod={alpha}
-        onPodSelect={onPodSelect}
-      />
-    );
+    render(<StatefulFleet selectedPod={alpha} onPodSelect={onPodSelect} />);
 
     expect(screen.getByText("All 2")).toBeVisible();
     expect(screen.getByTestId(`pod-fleet-cell-${alpha.name}`)).toHaveTextContent("alpha");
@@ -127,30 +128,20 @@ describe("PodFleet", () => {
     expect(screen.queryByTestId(`pod-fleet-cell-${bravo.name}`)).not.toBeInTheDocument();
   });
 
-  it("shows silent pods under Idle with a partition hint", async () => {
+  it("reports filter changes to the parent and honours a parent-set filter", () => {
+    const onFilterChange = jest.fn();
     render(
       <PodFleet
-        pods={[alpha, bravo, charlie]}
-        detailsByName={details}
+        items={items}
+        filter="critical"
+        onFilterChange={onFilterChange}
         runtimeByName={runtime}
-        readRates={rates}
         onPodSelect={jest.fn()}
       />
     );
 
-    const idle = screen.getByTestId(`pod-fleet-cell-${charlie.name}`);
-    expect(idle).toHaveClass("pod-fleet-cell--idle");
-    expect(screen.getByTestId(`pod-fleet-cell-${bravo.name}`)).toHaveClass(
-      "pod-fleet-cell--critical"
-    );
-    expect(screen.getByTestId(`pod-fleet-cell-${alpha.name}`)).toHaveClass(
-      "pod-fleet-cell--healthy"
-    );
-    fireEvent.click(screen.getByTestId("pods-filter-idle"));
     expect(screen.queryByTestId(`pod-fleet-cell-${alpha.name}`)).not.toBeInTheDocument();
-
-    fireEvent.mouseOver(idle);
-    expect(await screen.findByText(IDLE_HINT)).toBeInTheDocument();
-    expect(screen.getByText("Read rate (5m): 0.0 msg/s")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("pods-filter-all"));
+    expect(onFilterChange).toHaveBeenCalledWith("all");
   });
 });

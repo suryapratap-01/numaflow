@@ -104,6 +104,8 @@ export interface VertexDetailsProps {
 
 export interface VertexDetailsContextProps {
   openMetrics: (options: OpenMetricsOptions) => void;
+  /** Switches to a vertex tab by its URL key (e.g. `errors`); unknown keys are ignored. */
+  openVertexTab: (key: string) => void;
   expanded: Set<string>;
   setExpanded: Dispatch<SetStateAction<Set<string>>>;
   presets: any;
@@ -119,6 +121,8 @@ export interface OpenMetricsOptions {
 export const VertexDetailsContext = createContext<VertexDetailsContextProps>({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   openMetrics: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  openVertexTab: () => {},
   expanded: new Set(),
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   setExpanded: () => {},
@@ -446,6 +450,14 @@ export function VertexDetails({
     [disableMetricsCharts, history, location, isDeepLinkedVertex]
   );
 
+  const openVertexTab = useCallback(
+    (key: string) => {
+      const index = TAB_INDEX_BY_KEY[key];
+      if (index !== undefined) applyVertexTab(index);
+    },
+    [applyVertexTab]
+  );
+
   useEffect(() => {
     if (disableMetricsCharts && tabValue === METRICS_TAB_INDEX) {
       applyVertexTab(PODS_VIEW_TAB_INDEX);
@@ -456,6 +468,7 @@ export function VertexDetails({
     <VertexDetailsContext.Provider
       value={{
         openMetrics,
+        openVertexTab,
         expanded,
         setExpanded,
         presets,
@@ -608,6 +621,10 @@ export function VertexDetails({
                   pipelineId={pipelineId}
                   vertexId={vertexId}
                   type={type}
+                  vertexMetrics={vertexMetrics}
+                  buffers={buffers || undefined}
+                  recentErrorCount={errorsCount}
+                  vertexSpec={vertexSpec}
                 />
               ) : (
                 <Pods
