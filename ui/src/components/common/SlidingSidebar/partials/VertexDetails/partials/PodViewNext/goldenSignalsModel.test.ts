@@ -314,8 +314,8 @@ describe("buildVertexHealth", () => {
         inspect: { kind: "tab", tab: "buffers" },
       })
     );
-    expect(backlog({ ...pipeline, daemon: { rate1m: 10 }, buffers: [buffer] }).value).toBe(
-      "buffer 15% full"
+    expect(backlog({ ...pipeline, daemon: { rate1m: 10 }, buffers: [buffer] })).toEqual(
+      expect.objectContaining({ value: "buffer 15% full", detail: "Source does not report pending messages" })
     );
     expect(
       backlog({ ...pipeline, buffers: [buffer, { ...buffer, bufferUsage: 0.4, bufferUsageLimit: 0.5 }] })

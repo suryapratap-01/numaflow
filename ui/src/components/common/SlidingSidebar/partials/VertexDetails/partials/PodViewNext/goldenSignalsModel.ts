@@ -480,7 +480,7 @@ function backlogCard(input: VertexHealthInput): HealthCard {
   const detail = [
     pending !== undefined ? `${formatCompact(pending)} pending` : undefined,
     formatTrend(trend, "/ 30m"),
-    percentFull !== undefined ? `buffer ${percentFull}% full` : undefined,
+    percentFull !== undefined && pending !== undefined ? `buffer ${percentFull}% full` : undefined,
     lag !== undefined ? `WM lag ${formatElapsed(lag)}` : undefined,
   ]
     .filter(Boolean)
