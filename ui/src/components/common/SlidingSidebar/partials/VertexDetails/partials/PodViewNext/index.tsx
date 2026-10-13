@@ -21,6 +21,7 @@ import { buildVertexHealth, isUnhealthyPod, readDaemonRates } from "./goldenSign
 import { PodFleet } from "./PodFleet";
 import { buildPodFleetItems, PodFleetFilter } from "./podFleetModel";
 import { PodInspector } from "./PodInspector";
+import { usePodReadRates } from "./usePodReadRates";
 import { useVertexHealthData } from "./useVertexHealthData";
 import { VertexHealthStrip } from "./VertexHealthStrip";
 
@@ -78,9 +79,11 @@ export function PodViewNext(props: PodViewNextProps) {
   const { queries, series, health, monoStatus, watermarkEdges, metricsEnabled, now } =
     useVertexHealthData({ namespaceId, pipelineId, vertexId, type });
 
+  const readRates = usePodReadRates({ namespaceId, pipelineId, vertexId, type });
+
   const fleetItems = useMemo(
-    () => buildPodFleetItems(pods, podsDetails, podRuntimeByName),
-    [pods, podsDetails, podRuntimeByName]
+    () => buildPodFleetItems(pods, podsDetails, podRuntimeByName, readRates, now),
+    [pods, podsDetails, podRuntimeByName, readRates, now]
   );
   const vertexHealth = useMemo(
     () =>
@@ -128,11 +131,9 @@ export function PodViewNext(props: PodViewNextProps) {
         openVertexTab(target.tab);
         return;
       }
-      const unhealthy = fleetItems.filter(isUnhealthyPod);
-      const affected = unhealthy.find((item) => item.severity === "critical") || unhealthy[0];
+      const affected = fleetItems.find(isUnhealthyPod);
       if (!affected) return;
-      // Crash-looping pods are classified `unknown`, which the Critical filter would hide.
-      setFilter(affected.severity === "critical" ? "critical" : "all");
+      setFilter("critical");
       const container = failingContainer(affected);
       if (container) {
         selectPodWithContainer(affected.pod, container);
@@ -198,7 +199,6 @@ export function PodViewNext(props: PodViewNextProps) {
           filter={filter}
           onFilterChange={setFilter}
           runtimeByName={podRuntimeByName}
-          readRates={readRates}
           selectedPod={selectedPod}
           onPodSelect={selectPodFromFleet}
         />

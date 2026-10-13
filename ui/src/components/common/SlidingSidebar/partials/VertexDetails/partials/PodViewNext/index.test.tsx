@@ -17,6 +17,9 @@ jest.mock("./useVertexHealthData", () => ({
     now: Date.now(),
   })),
 }));
+jest.mock("./usePodReadRates", () => ({
+  usePodReadRates: jest.fn(() => undefined),
+}));
 
 jest.mock(
   "../../../../../../pages/Pipeline/partials/Graph/partials/NodeInfo/partials/Pods/usePodViewState",
@@ -27,9 +30,6 @@ jest.mock(
     usePodViewState: jest.fn(),
   })
 );
-jest.mock("./usePodReadRates", () => ({
-  usePodReadRates: jest.fn(() => undefined),
-}));
 jest.mock("./PodFleet", () => ({
   PodFleet: (props: any) => {
     mockFleetProps(props);

@@ -10,7 +10,6 @@ import {
   Pod,
   PodFleetItem,
   PodFleetSort,
-  PodReadRates,
   PodRuntimeInfo,
 } from "../../../../../../../types/declarations/pods";
 import {
@@ -28,8 +27,6 @@ interface PodFleetProps {
   filter: PodFleetFilter;
   onFilterChange: (filter: PodFleetFilter) => void;
   runtimeByName: Map<string, PodRuntimeInfo>;
-  /** Per-pod read rates; undefined until metrics load, in which case no pod is marked idle. */
-  readRates?: Map<string, PodReadRates>;
   selectedPod?: Pod;
   onPodSelect: (pod: Pod) => void;
 }
@@ -66,7 +63,6 @@ export function PodFleet({
   filter,
   onFilterChange,
   runtimeByName,
-  readRates,
   selectedPod,
   onPodSelect,
 }: PodFleetProps) {

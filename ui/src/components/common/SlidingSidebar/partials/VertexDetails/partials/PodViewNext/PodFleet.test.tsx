@@ -2,7 +2,7 @@ import { useState } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { PodFleet } from "./PodFleet";
-import { buildPodFleetItems, PodFleetFilter } from "./podFleetModel";
+import { buildPodFleetItems, IDLE_HINT, PodFleetFilter } from "./podFleetModel";
 import { Pod, PodDetail, PodRuntimeInfo } from "../../../../../../../types/declarations/pods";
 
 const alpha: Pod = {
@@ -63,7 +63,7 @@ const rates = new Map([
   [bravo.name, { rate5m: 1, rate15m: 1 }],
 ]);
 
-const items = buildPodFleetItems([alpha, bravo], details, runtime);
+const items = buildPodFleetItems([alpha, bravo, charlie], details, runtime, rates);
 
 function StatefulFleet({
   selectedPod,
@@ -109,7 +109,7 @@ describe("PodFleet", () => {
     const onPodSelect = jest.fn();
     render(<StatefulFleet selectedPod={alpha} onPodSelect={onPodSelect} />);
 
-    expect(screen.getByText("All 2")).toBeVisible();
+    expect(screen.getByText("All 3")).toBeVisible();
     expect(screen.getByTestId(`pod-fleet-cell-${alpha.name}`)).toHaveTextContent("alpha");
     expect(screen.getByTestId("pod-fleet-selected-status")).toHaveClass(
       "pod-fleet-status--running"
@@ -126,6 +126,22 @@ describe("PodFleet", () => {
     });
     expect(screen.getByTestId(`pod-fleet-cell-${alpha.name}`)).toBeInTheDocument();
     expect(screen.queryByTestId(`pod-fleet-cell-${bravo.name}`)).not.toBeInTheDocument();
+  });
+
+  it("shows silent pods under Idle with a partition hint", async () => {
+    render(<StatefulFleet />);
+
+    const idle = screen.getByTestId(`pod-fleet-cell-${charlie.name}`);
+    expect(idle).toHaveClass("pod-fleet-cell--idle");
+    expect(screen.getByTestId(`pod-fleet-cell-${bravo.name}`)).toHaveClass(
+      "pod-fleet-cell--critical"
+    );
+    fireEvent.click(screen.getByTestId("pods-filter-idle"));
+    expect(screen.queryByTestId(`pod-fleet-cell-${alpha.name}`)).not.toBeInTheDocument();
+
+    fireEvent.mouseOver(idle);
+    expect(await screen.findByText(IDLE_HINT)).toBeInTheDocument();
+    expect(screen.getByText("Read rate (5m): 0.0 msg/s")).toBeInTheDocument();
   });
 
   it("reports filter changes to the parent and honours a parent-set filter", () => {

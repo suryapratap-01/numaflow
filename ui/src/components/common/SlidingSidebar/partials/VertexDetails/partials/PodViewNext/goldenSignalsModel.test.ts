@@ -351,7 +351,7 @@ describe("buildVertexHealth", () => {
     const errors = (overrides: Partial<VertexHealthInput>) =>
       card(buildVertexHealth(input(overrides)), "errors");
     const crashing = fleetItem({
-      severity: "unknown",
+      severity: "critical",
       runtime: { name: "pod-1", status: "CrashLoopBackOff", containerDetailsMap: {} },
       restartCount: 39,
     });

@@ -557,9 +557,9 @@ function lossCard(input: VertexHealthInput): HealthCard {
   };
 }
 
-/** isUnhealthyPod counts critical pods, plus unknown pods only once runtime status has loaded. */
+/** isUnhealthyPod counts critical pods; crash loops and other non-running states are critical. */
 export function isUnhealthyPod(item: PodFleetItem): boolean {
-  return item.severity === "critical" || (item.severity === "unknown" && !!item.runtime?.status);
+  return item.severity === "critical";
 }
 
 function errorsCard(input: VertexHealthInput): HealthCard {
